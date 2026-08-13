@@ -36,6 +36,8 @@ public class AppConfig
     public string ContentColor { get; set; } = "";
     public string LinkColor { get; set; } = "";
     public string Icon { get; set; } = "";
+    public bool StartWithWindows { get; set; } = false;
+    public bool SilentStart { get; set; } = false;
 }
 
 public static class ConfigService

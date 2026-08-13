@@ -21,5 +21,7 @@
   "contentFontFamily": "Lucida Fax",
   "contentColor": "",
   "linkColor": "",
-  "icon": ""
+  "icon": "",
+  "startWithWindows": false,
+  "silentStart": false
 }

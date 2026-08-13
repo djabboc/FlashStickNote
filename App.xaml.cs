@@ -59,9 +59,22 @@ public partial class App : System.Windows.Application
             Logger.Log("允许多实例模式");
         }
 
+        AutoStartService.Apply(conf.StartWithWindows);
+
         var window = new MainWindow();
         MainWindow = window;
-        window.Show();
+        if (conf.SilentStart)
+        {
+            window.Opacity = 0;
+            window.Show();
+            window.Hide();
+            window.Opacity = 1;
+            Logger.Log("静默启动：已最小化到托盘");
+        }
+        else
+        {
+            window.Show();
+        }
     }
 
     private void ListenForShowSignal()
