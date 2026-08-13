@@ -4,3 +4,4 @@ obj/
 *.user
 行号验证截图/
 *.png
+release/
