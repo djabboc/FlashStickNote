@@ -47,17 +47,17 @@ public partial class MainWindow : Window
         DataContext = new MainViewModel(_storage);
         ApplyConfig(conf);
         ApplyWindowShortcut();
-        InitLineNumberHooks();
+        InitEditor();
+        InitEditorBinding();
         InitFontZoom();
         InitTrayIcon();
     }
 
-    private System.Windows.Controls.ScrollViewer? _contentScrollViewer;
-    private Controls.LineNumberRenderer? _lineNumbers;
-    private bool _lineNumbersDeferred;
     private AppConfig _appConfig = new();
     private System.Windows.Input.ModifierKeys _zoomModifier;
     private bool _zoomEnabled;
+    private bool _editorSyncing;
+    private Note? _hookedEditorNote;
     private readonly System.Windows.Threading.DispatcherTimer _zoomSaveTimer = new()
     {
         Interval = TimeSpan.FromMilliseconds(600),
@@ -146,18 +146,128 @@ public partial class MainWindow : Window
             TitleBox.Foreground = titleBrush;
         }
 
-        if (ParseBrush(conf.ContentColor) is { } contentBrush)
-        {
-            ContentBox.Foreground = contentBrush;
-            ContentBox.CaretBrush = contentBrush;
-        }
-
-        ContentBox.TextWrapping = conf.WordWrap ? TextWrapping.Wrap : TextWrapping.NoWrap;
+        ContentBox.WordWrap = conf.WordWrap;
+        ContentBox.ShowLineNumbers = conf.ShowLineNumbers;
         ContentBox.HorizontalScrollBarVisibility = conf.WordWrap
             ? System.Windows.Controls.ScrollBarVisibility.Disabled
             : System.Windows.Controls.ScrollBarVisibility.Auto;
-        LineNumberPanel.Visibility = conf.ShowLineNumbers ? Visibility.Visible : Visibility.Collapsed;
-        ScheduleLineNumbers();
+
+        var editorForeground = Resources["Theme.EditorForeground"] as System.Windows.Media.Brush
+            ?? System.Windows.Media.Brushes.Black;
+        ContentBox.LineNumbersForeground = Resources["Theme.LineNumberForeground"] as System.Windows.Media.Brush
+            ?? System.Windows.Media.Brushes.Gray;
+
+        ContentBox.TextArea.TextView.LinkTextForegroundBrush = ParseBrush(conf.LinkColor)
+            ?? System.Windows.Media.Brushes.DodgerBlue;
+        ContentBox.TextArea.TextView.LinkTextUnderline = true;
+
+        if (ParseBrush(conf.ContentColor) is { } contentBrush)
+        {
+            ContentBox.Foreground = contentBrush;
+            ContentBox.TextArea.Caret.CaretBrush = contentBrush;
+        }
+        else
+        {
+            ContentBox.TextArea.Caret.CaretBrush = editorForeground;
+        }
+    }
+
+    private void InitEditor()
+    {
+        var options = ContentBox.TextArea.Options;
+        options.EnableHyperlinks = true;
+        options.EnableEmailHyperlinks = false;
+        options.RequireControlModifierForHyperlinkClick = true;
+
+        var generators = ContentBox.TextArea.TextView.ElementGenerators;
+        foreach (var generator in generators.OfType<ICSharpCode.AvalonEdit.Rendering.LinkElementGenerator>().ToList())
+        {
+            generators.Remove(generator);
+        }
+
+        generators.Add(new Controls.HttpLinkElementGenerator());
+        Logger.Log("超链接识别已启用（仅 http/https，Ctrl+单击打开）");
+    }
+
+    private void InitEditorBinding()
+    {
+        if (DataContext is not MainViewModel vm)
+        {
+            return;
+        }
+
+        vm.PropertyChanged += OnVmPropertyChanged;
+        ContentBox.TextChanged += OnEditorTextChanged;
+        HookEditorNote(vm.SelectedNote);
+        SyncEditorFromSelectedNote();
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is not MainViewModel vm)
+        {
+            return;
+        }
+
+        if (e.PropertyName == nameof(MainViewModel.SelectedNote))
+        {
+            HookEditorNote(vm.SelectedNote);
+            SyncEditorFromSelectedNote();
+        }
+    }
+
+    private void HookEditorNote(Note? note)
+    {
+        if (ReferenceEquals(_hookedEditorNote, note))
+        {
+            return;
+        }
+
+        if (_hookedEditorNote != null)
+        {
+            _hookedEditorNote.PropertyChanged -= OnNotePropertyChangedForEditor;
+        }
+
+        _hookedEditorNote = note;
+        if (_hookedEditorNote != null)
+        {
+            _hookedEditorNote.PropertyChanged += OnNotePropertyChangedForEditor;
+        }
+    }
+
+    private void OnNotePropertyChangedForEditor(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(Note.Title) or nameof(Note.Content))
+        {
+            SyncEditorFromSelectedNote();
+        }
+    }
+
+    private void SyncEditorFromSelectedNote()
+    {
+        var vm = DataContext as MainViewModel;
+        var text = vm?.SelectedNote?.Content ?? "";
+        if (ContentBox.Text == text)
+        {
+            return;
+        }
+
+        _editorSyncing = true;
+        ContentBox.Text = text;
+        _editorSyncing = false;
+    }
+
+    private void OnEditorTextChanged(object? sender, EventArgs e)
+    {
+        if (_editorSyncing)
+        {
+            return;
+        }
+
+        if (DataContext is MainViewModel vm && vm.SelectedNote != null && vm.SelectedNote.Content != ContentBox.Text)
+        {
+            vm.SelectedNote.Content = ContentBox.Text;
+        }
     }
 
     private void InitFontZoom()
@@ -238,7 +348,6 @@ public partial class MainWindow : Window
         _appConfig.TitleFontSize = newTitleSize;
         ContentBox.FontSize = newSize;
         TitleBox.FontSize = newTitleSize;
-        ScheduleLineNumbers();
 
         _zoomSaveTimer.Stop();
         _zoomSaveTimer.Start();
@@ -317,71 +426,6 @@ public partial class MainWindow : Window
         }
 
         vm.DeleteSelected();
-    }
-
-    private void InitLineNumberHooks()
-    {
-        _lineNumbers = new Controls.LineNumberRenderer(ContentBox, LineNumbersHost, LineNumberPanel);
-        _lineNumbers.SetForeground(
-            Resources["Theme.LineNumberForeground"] as System.Windows.Media.Brush
-            ?? System.Windows.Media.Brushes.Gray);
-        ContentBox.Loaded += (_, _) => InitLineNumbers();
-        ContentBox.TextChanged += (_, _) => ScheduleLineNumbers();
-        ContentBox.SizeChanged += (_, _) => ScheduleLineNumbers();
-    }
-
-    private void InitLineNumbers()
-    {
-        if (_contentScrollViewer == null)
-        {
-            _contentScrollViewer = FindDescendant<System.Windows.Controls.ScrollViewer>(ContentBox);
-            if (_contentScrollViewer != null)
-            {
-                _contentScrollViewer.ScrollChanged += (_, _) => _lineNumbers?.Update();
-                _lineNumbers?.SetScrollViewer(_contentScrollViewer);
-            }
-        }
-
-        _lineNumbers?.Update();
-    }
-
-    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
-    {
-        var count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
-        for (var i = 0; i < count; i++)
-        {
-            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
-            if (child is T typed)
-            {
-                return typed;
-            }
-
-            var found = FindDescendant<T>(child);
-            if (found != null)
-            {
-                return found;
-            }
-        }
-
-        return null;
-    }
-
-    private void ScheduleLineNumbers()
-    {
-        _lineNumbers?.Invalidate();
-        if (_lineNumbersDeferred)
-        {
-            return;
-        }
-
-        _lineNumbersDeferred = true;
-        System.Windows.Application.Current.Dispatcher.BeginInvoke(
-            System.Windows.Threading.DispatcherPriority.Loaded,
-            new Action(() =>
-            {
-                _lineNumbersDeferred = false;
-                _lineNumbers?.Update();
-            }));
     }
 
     protected override void OnSourceInitialized(EventArgs e)

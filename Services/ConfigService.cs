@@ -34,6 +34,7 @@ public class AppConfig
     public string TitleColor { get; set; } = "";
     public string ContentFontFamily { get; set; } = "";
     public string ContentColor { get; set; } = "";
+    public string LinkColor { get; set; } = "";
 }
 
 public static class ConfigService

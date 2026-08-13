@@ -19,5 +19,6 @@
   "titleFontFamily": "Lucida Fax",
   "titleColor": "",
   "contentFontFamily": "Lucida Fax",
-  "contentColor": ""
+  "contentColor": "",
+  "linkColor": ""
 }
