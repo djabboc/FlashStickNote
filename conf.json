@@ -1,0 +1,23 @@
+{
+  "fontFamily": "Lucida Fax",
+  "fontSize": 16.0,
+  "titleFontSize": 18.0,
+  "noteListFontSize": 13.0,
+  "notesDir": "C:\\Users\\huang\\Desktop\\BackUp",
+  "notesFormat": "json",
+  "allowMultiInstance": false,
+  "newNoteFocus": "title",
+  "listContentLines": 0,
+  "showLineNumbers": true,
+  "wordWrap": true,
+  "theme": "light",
+  "confirmDelete": true,
+  "listTitleFontFamily": "",
+  "listTitleFontSize": 16.0,
+  "listPreviewFontFamily": "",
+  "listPreviewFontSize": 10.0,
+  "titleFontFamily": "Lucida Fax",
+  "titleColor": "",
+  "contentFontFamily": "Lucida Fax",
+  "contentColor": ""
+}

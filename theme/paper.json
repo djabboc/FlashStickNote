@@ -1,0 +1,18 @@
+{
+  "name": "纸张黄",
+  "windowBackground": "#F6F0DC",
+  "listBackground": "#F0E9D2",
+  "listHeaderBackground": "#E9E0C4",
+  "listHeaderForeground": "#5B4F33",
+  "listForeground": "#4A3F28",
+  "listSecondaryForeground": "#9A8B64",
+  "listTertiaryForeground": "#A89A75",
+  "listSelectedBackground": "#E3D7AE",
+  "listSelectedForeground": "#4A3F28",
+  "editorBackground": "#FBF6E3",
+  "editorForeground": "#4A3F28",
+  "lineNumberBackground": "#F0E9D2",
+  "lineNumberForeground": "#9A8B64",
+  "borderColor": "#E2D5A8",
+  "splitterColor": "#E2D5A8"
+}

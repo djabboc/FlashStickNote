@@ -1,0 +1,18 @@
+{
+  "name": "浅色",
+  "windowBackground": "#F5F5F5",
+  "listBackground": "#F5F5F5",
+  "listHeaderBackground": "#ECECEC",
+  "listHeaderForeground": "#333333",
+  "listForeground": "#1E1E1E",
+  "listSecondaryForeground": "#999999",
+  "listTertiaryForeground": "#BBBBBB",
+  "listSelectedBackground": "#D6E4F0",
+  "listSelectedForeground": "#1E1E1E",
+  "editorBackground": "#FFFFFF",
+  "editorForeground": "#1E1E1E",
+  "lineNumberBackground": "#FAFAFA",
+  "lineNumberForeground": "#999999",
+  "borderColor": "#DDDDDD",
+  "splitterColor": "#E0E0E0"
+}

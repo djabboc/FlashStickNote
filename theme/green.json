@@ -1,0 +1,18 @@
+{
+  "name": "护眼绿",
+  "windowBackground": "#C7EDCC",
+  "listBackground": "#BFE3C5",
+  "listHeaderBackground": "#B5DDBB",
+  "listHeaderForeground": "#2B3B2B",
+  "listForeground": "#243324",
+  "listSecondaryForeground": "#6B8A6B",
+  "listTertiaryForeground": "#7E9C7E",
+  "listSelectedBackground": "#A3D4AC",
+  "listSelectedForeground": "#1F2E1F",
+  "editorBackground": "#C7EDCC",
+  "editorForeground": "#263626",
+  "lineNumberBackground": "#BFE3C5",
+  "lineNumberForeground": "#6B8A6B",
+  "borderColor": "#9CC9A3",
+  "splitterColor": "#9CC9A3"
+}

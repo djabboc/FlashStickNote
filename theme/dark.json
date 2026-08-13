@@ -1,0 +1,18 @@
+{
+  "name": "深色",
+  "windowBackground": "#1E1E1E",
+  "listBackground": "#252526",
+  "listHeaderBackground": "#2D2D30",
+  "listHeaderForeground": "#DDDDDD",
+  "listForeground": "#D4D4D4",
+  "listSecondaryForeground": "#9E9E9E",
+  "listTertiaryForeground": "#7A7A7A",
+  "listSelectedBackground": "#37373D",
+  "listSelectedForeground": "#FFFFFF",
+  "editorBackground": "#1E1E1E",
+  "editorForeground": "#D4D4D4",
+  "lineNumberBackground": "#252526",
+  "lineNumberForeground": "#6A6A6A",
+  "borderColor": "#3F3F46",
+  "splitterColor": "#3F3F46"
+}

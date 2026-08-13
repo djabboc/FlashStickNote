@@ -1,0 +1,6 @@
+bin/
+obj/
+.vs/
+*.user
+行号验证截图/
+*.png
