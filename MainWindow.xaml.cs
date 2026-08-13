@@ -14,6 +14,8 @@ public partial class MainWindow : Window
     private readonly List<string> _failedHotkeys = new();
     private NoteStorage? _storage;
     private System.Windows.Forms.NotifyIcon? _notifyIcon;
+    private System.Drawing.Icon? _trayIcon;
+    private string? _iconPath;
     private bool _isExiting;
 
     public MainWindow()
@@ -37,7 +39,7 @@ public partial class MainWindow : Window
             Logger.Log($"笔记目录创建失败: {ex}");
             System.Windows.MessageBox.Show(
                 $"笔记目录创建失败：{ex.Message}\n将改用默认目录（程序目录下的 notes 文件夹）。\n配置文件位置：{ConfigService.BaseDir}conf.json",
-                "闪念笔记",
+                "FlashStickNote",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             _storage = new NoteStorage(ConfigService.BaseDir, "notes", conf.NotesFormat);
@@ -45,12 +47,46 @@ public partial class MainWindow : Window
         }
 
         DataContext = new MainViewModel(_storage);
+        ApplyAppIcon();
         ApplyConfig(conf);
         ApplyWindowShortcut();
         InitEditor();
         InitEditorBinding();
         InitFontZoom();
         InitTrayIcon();
+    }
+
+    private void ApplyAppIcon()
+    {
+        var conf = ConfigService.LoadConfig();
+        var iconPath = IconService.Resolve(conf.Icon);
+        if (iconPath == null)
+        {
+            return;
+        }
+
+        try
+        {
+            using var stream = File.OpenRead(iconPath);
+            var decoder = new System.Windows.Media.Imaging.IconBitmapDecoder(
+                stream,
+                System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat,
+                System.Windows.Media.Imaging.BitmapCacheOption.OnLoad);
+            var frame = decoder.Frames
+                .OrderBy(f => Math.Abs(f.Width - 32))
+                .FirstOrDefault();
+            if (frame != null)
+            {
+                Icon = frame;
+            }
+
+            _iconPath = iconPath;
+            Logger.Log($"已应用图标: {iconPath}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"加载图标失败: {iconPath} ({ex.Message})");
+        }
     }
 
     private AppConfig _appConfig = new();
@@ -416,7 +452,7 @@ public partial class MainWindow : Window
         {
             var result = System.Windows.MessageBox.Show(
                 $"确定删除笔记「{vm.SelectedNote.DisplayTitle}」吗？\n删除的笔记会移入回收站。",
-                "闪念笔记",
+                "FlashStickNote",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes)
@@ -446,7 +482,7 @@ public partial class MainWindow : Window
             System.Windows.MessageBox.Show(
                 "以下全局快捷键注册失败（可能已被其他程序占用），请修改 shortcut.json 后重启：\n" +
                 string.Join("\n", _failedHotkeys),
-                "闪念笔记",
+                "FlashStickNote",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
@@ -517,10 +553,21 @@ public partial class MainWindow : Window
 
     private void InitTrayIcon()
     {
+        if (_iconPath != null)
+        {
+            try
+            {
+                _trayIcon = new System.Drawing.Icon(_iconPath);
+            }
+            catch
+            {
+            }
+        }
+
         _notifyIcon = new System.Windows.Forms.NotifyIcon
         {
-            Icon = System.Drawing.SystemIcons.Application,
-            Text = "闪念笔记",
+            Icon = _trayIcon ?? System.Drawing.SystemIcons.Application,
+            Text = "FlashStickNote",
             Visible = true,
         };
         _notifyIcon.DoubleClick += (_, _) => ShowWindow();
@@ -577,6 +624,7 @@ public partial class MainWindow : Window
         }
 
         _notifyIcon?.Dispose();
+        _trayIcon?.Dispose();
         base.OnClosing(e);
     }
 }

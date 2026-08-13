@@ -10,7 +10,12 @@
     <RootNamespace>FlashStickNote</RootNamespace>
     <AssemblyName>FlashStickNote</AssemblyName>
     <Product>FlashStickNote</Product>
+    <ApplicationIcon>FlashStickNote.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="FlashStickNote.ico" LogicalName="FlashStickNote.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AvalonEdit" Version="6.3.1.120" />
