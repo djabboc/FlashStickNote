@@ -26,5 +26,5 @@
   "silentStart": true,
   "hideListScrollbar": true,
   "hideEditorScrollbar": true,
-  "hideTitleBar": false
+  "hideTitleBar": true
 }
