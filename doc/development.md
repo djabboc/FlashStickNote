@@ -100,6 +100,7 @@ csproj `ApplicationIcon`（exe 内嵌）+ `EmbeddedResource LogicalName`（运�
 | 单实例失败 | Mutex 未持有引用被 GC | static 字段持有 |
 | 通知已有实例显示失败 | 信号到达时 MainWindow 未创建 | DispatcherPriority.ApplicationIdle 延迟执行 |
 | 打开复制的中文 txt 乱码 | 文件为 ANSI/GBK 编码 | 未修复（按 UTF-8 读取）；README 建议用 UTF-8 |
+| Ctrl+A 全选后按 Left 停在倒数第二字符后（不跳文首） | AvalonEdit 无修饰箭头键先 `ClearSelection()` 再从当前位置移一格；全选后光标在文末 | `NoteTextEditor` 子类重写 `OnPreviewKeyDown`：带选区且无修饰键时 Left/Up → 选区起点、Right/Down → 选区终点（对齐 VS Code） |
 
 ## 测试约定
 
