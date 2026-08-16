@@ -188,6 +188,15 @@ public partial class MainWindow : Window
             ? System.Windows.Controls.ScrollBarVisibility.Disabled
             : System.Windows.Controls.ScrollBarVisibility.Auto;
 
+        System.Windows.Controls.ScrollViewer.SetVerticalScrollBarVisibility(NoteList,
+            conf.HideListScrollbar
+                ? System.Windows.Controls.ScrollBarVisibility.Hidden
+                : System.Windows.Controls.ScrollBarVisibility.Auto);
+        ContentBox.VerticalScrollBarVisibility = conf.HideEditorScrollbar
+            ? System.Windows.Controls.ScrollBarVisibility.Hidden
+            : System.Windows.Controls.ScrollBarVisibility.Auto;
+        Logger.Log($"滚动条: 列表{(conf.HideListScrollbar ? "隐藏" : "显示")}, 编辑区{(conf.HideEditorScrollbar ? "隐藏" : "显示")}");
+
         var editorForeground = Resources["Theme.EditorForeground"] as System.Windows.Media.Brush
             ?? System.Windows.Media.Brushes.Black;
         ContentBox.LineNumbersForeground = Resources["Theme.LineNumberForeground"] as System.Windows.Media.Brush
@@ -363,31 +372,65 @@ public partial class MainWindow : Window
         }
     }
 
+    private System.Windows.Controls.ScrollViewer? _editorScrollViewer;
+
     private void OnEditorMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
     {
-        if (!_zoomEnabled || System.Windows.Input.Keyboard.Modifiers != _zoomModifier)
-        {
-            return;
-        }
+        var modifiers = System.Windows.Input.Keyboard.Modifiers;
 
-        var step = e.Delta > 0 ? 1.0 : -1.0;
-        var newSize = Math.Clamp(_appConfig.FontSize + step, 8.0, 72.0);
-        var newTitleSize = Math.Clamp(_appConfig.TitleFontSize + step, 8.0, 72.0);
-        if (Math.Abs(newSize - _appConfig.FontSize) < 0.01 &&
-            Math.Abs(newTitleSize - _appConfig.TitleFontSize) < 0.01)
+        if (_zoomEnabled && modifiers == _zoomModifier)
         {
+            var step = e.Delta > 0 ? 1.0 : -1.0;
+            var newSize = Math.Clamp(_appConfig.FontSize + step, 8.0, 72.0);
+            var newTitleSize = Math.Clamp(_appConfig.TitleFontSize + step, 8.0, 72.0);
+            if (Math.Abs(newSize - _appConfig.FontSize) >= 0.01 ||
+                Math.Abs(newTitleSize - _appConfig.TitleFontSize) >= 0.01)
+            {
+                _appConfig.FontSize = newSize;
+                _appConfig.TitleFontSize = newTitleSize;
+                ContentBox.FontSize = newSize;
+                TitleBox.FontSize = newTitleSize;
+
+                _zoomSaveTimer.Stop();
+                _zoomSaveTimer.Start();
+            }
+
             e.Handled = true;
             return;
         }
 
-        _appConfig.FontSize = newSize;
-        _appConfig.TitleFontSize = newTitleSize;
-        ContentBox.FontSize = newSize;
-        TitleBox.FontSize = newTitleSize;
+        if (ReferenceEquals(sender, ContentBox) &&
+            modifiers == System.Windows.Input.ModifierKeys.Shift &&
+            e.Delta != 0)
+        {
+            _editorScrollViewer ??= FindDescendant<System.Windows.Controls.ScrollViewer>(ContentBox);
+            if (_editorScrollViewer != null && _editorScrollViewer.ScrollableWidth > 0)
+            {
+                _editorScrollViewer.ScrollToHorizontalOffset(_editorScrollViewer.HorizontalOffset - e.Delta);
+                e.Handled = true;
+            }
+        }
+    }
 
-        _zoomSaveTimer.Stop();
-        _zoomSaveTimer.Start();
-        e.Handled = true;
+    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+    {
+        var count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < count; i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is T typed)
+            {
+                return typed;
+            }
+
+            var found = FindDescendant<T>(child);
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+        return null;
     }
 
     private void ApplyWindowShortcuts()

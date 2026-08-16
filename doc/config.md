@@ -26,6 +26,8 @@
 
   "startWithWindows": false,             // 开机启动（注册表 HKCU Run 键）
   "silentStart": false,                  // 启动后直接进托盘
+  "hideListScrollbar": false,            // 隐藏左侧列表的垂直滚动条（隐藏后仍可用滚轮滚动）
+  "hideEditorScrollbar": false,          // 隐藏右侧编辑区的垂直滚动条（隐藏后仍可用滚轮滚动）
 
   // 以下留空 "" 表示跟随全局/主题
   "listTitleFontFamily": "",             // 列表标题字体

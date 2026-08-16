@@ -39,6 +39,8 @@ public class AppConfig
     public string Icon { get; set; } = "";
     public bool StartWithWindows { get; set; } = false;
     public bool SilentStart { get; set; } = false;
+    public bool HideListScrollbar { get; set; } = false;
+    public bool HideEditorScrollbar { get; set; } = false;
 }
 
 public static class ConfigService

@@ -23,5 +23,7 @@
   "linkColor": "",
   "icon": "",
   "startWithWindows": false,
-  "silentStart": false
+  "silentStart": false,
+  "hideListScrollbar": false,
+  "hideEditorScrollbar": false
 }

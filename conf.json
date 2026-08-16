@@ -7,7 +7,7 @@
   "notesFormat": "txt",
   "allowMultiInstance": false,
   "newNoteFocus": "content",
-  "listContentLines": 0,
+  "listContentLines": 2,
   "showLineNumbers": true,
   "wordWrap": true,
   "theme": "paper",
@@ -23,5 +23,7 @@
   "linkColor": "",
   "icon": "",
   "startWithWindows": true,
-  "silentStart": true
+  "silentStart": true,
+  "hideListScrollbar": true,
+  "hideEditorScrollbar": true
 }
