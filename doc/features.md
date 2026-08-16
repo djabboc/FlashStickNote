@@ -21,6 +21,7 @@
 | newNote | Ctrl+N | 新建笔记 | 窗口内 |
 | hideWindow | Ctrl+W | 仅隐藏到托盘 | 窗口内 |
 | fontZoom | Ctrl+Wheel | 编辑区字体缩放（上滚放大、下滚缩小，范围 8-72，600ms 防抖写回 conf.json） | 窗口内 |
+| toggleWordWrap | Alt+Z | 切换编辑区自动换行（结果写回 conf.json 的 wordWrap） | 窗口内 |
 
 ## 编辑区（AvalonEdit）
 

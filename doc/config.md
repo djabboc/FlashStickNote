@@ -47,7 +47,8 @@
   "toggleWindow": "Ctrl+Shift+N",   // 全局：显示/隐藏（来回切换，窗口相关→全局）
   "newNote": "Ctrl+N",              // 窗口内：新建笔记（编辑相关→仅本程序获得焦点时生效）
   "hideWindow": "Ctrl+W",           // 窗口内：仅隐藏到托盘
-  "fontZoom": "Ctrl+Wheel"          // 窗口内：字体缩放（支持 Ctrl/Alt/Shift + Wheel）
+  "fontZoom": "Ctrl+Wheel",         // 窗口内：字体缩放（支持 Ctrl/Alt/Shift + Wheel）
+  "toggleWordWrap": "Alt+Z"         // 窗口内：切换自动换行（结果写回 conf.json 的 wordWrap）
 }
 ```
 

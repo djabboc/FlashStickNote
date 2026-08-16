@@ -9,6 +9,7 @@ public class ShortcutConfig
     public string NewNote { get; set; } = "Ctrl+N";
     public string HideWindow { get; set; } = "Ctrl+W";
     public string FontZoom { get; set; } = "Ctrl+Wheel";
+    public string ToggleWordWrap { get; set; } = "Alt+Z";
 }
 
 public class AppConfig

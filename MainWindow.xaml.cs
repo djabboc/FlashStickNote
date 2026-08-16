@@ -395,6 +395,19 @@ public partial class MainWindow : Window
         var shortcut = ConfigService.LoadShortcut();
         AddWindowShortcut(shortcut.NewNote, CreateNewNote, "新建笔记");
         AddWindowShortcut(shortcut.HideWindow, HideToTray, "隐藏到托盘");
+        AddWindowShortcut(shortcut.ToggleWordWrap, ToggleWordWrap, "切换自动换行");
+    }
+
+    private void ToggleWordWrap()
+    {
+        var wrap = !ContentBox.WordWrap;
+        ContentBox.WordWrap = wrap;
+        ContentBox.HorizontalScrollBarVisibility = wrap
+            ? System.Windows.Controls.ScrollBarVisibility.Disabled
+            : System.Windows.Controls.ScrollBarVisibility.Auto;
+        _appConfig.WordWrap = wrap;
+        ConfigService.SaveConfig(_appConfig);
+        Logger.Log($"已切换自动换行: {(wrap ? "开启" : "关闭")}");
     }
 
     private void AddWindowShortcut(string combo, Action action, string name)
