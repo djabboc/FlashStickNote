@@ -12,10 +12,13 @@
 
 ## 全局快捷键（shortcut.json）
 
+> 作用域原则：**窗口相关**功能用全局快捷键（窗口隐藏时也能唤出）；
+> **编辑相关**功能只在 FlashStickNote 获得焦点时生效，绝不拦截其他程序。
+
 | 键 | 默认 | 行为 | 作用域 |
 |---|---|---|---|
 | toggleWindow | Ctrl+Shift+N | 显示/隐藏窗口（来回切换） | 全局 |
-| newNote | Ctrl+N | 显示窗口并新建笔记 | 全局 |
+| newNote | Ctrl+N | 新建笔记 | 窗口内 |
 | hideWindow | Ctrl+W | 仅隐藏到托盘 | 窗口内 |
 | fontZoom | Ctrl+Wheel | 编辑区字体缩放（上滚放大、下滚缩小，范围 8-72，600ms 防抖写回 conf.json） | 窗口内 |
 

@@ -44,13 +44,14 @@
 
 ```json
 {
-  "toggleWindow": "Ctrl+Shift+N",   // 全局：显示/隐藏（来回切换）
-  "newNote": "Ctrl+N",              // 全局：新建笔记
+  "toggleWindow": "Ctrl+Shift+N",   // 全局：显示/隐藏（来回切换，窗口相关→全局）
+  "newNote": "Ctrl+N",              // 窗口内：新建笔记（编辑相关→仅本程序获得焦点时生效）
   "hideWindow": "Ctrl+W",           // 窗口内：仅隐藏到托盘
   "fontZoom": "Ctrl+Wheel"          // 窗口内：字体缩放（支持 Ctrl/Alt/Shift + Wheel）
 }
 ```
 
+- 作用域原则：**窗口相关**（toggleWindow）注册为全局热键；**编辑相关**（newNote/hideWindow/fontZoom）只在 FlashStickNote 窗口内生效，不会在 VS Code 等其他程序里误触发
 - 全局快捷键支持 Ctrl/Alt/Shift/Win + 任意键（如 `Ctrl+N`、`F1`、`Space`、`Delete`）
 - **注意**：全局快捷键会拦截系统级按键（如全局注册 Ctrl+W 会让浏览器关标签失效），破坏性组合（Del、Ctrl+W 等）请用窗口内快捷键
 - fontZoom 必须包含至少一个修饰键 + `Wheel`，否则禁用（避免劫持普通滚轮）

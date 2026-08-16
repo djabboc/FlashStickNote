@@ -36,10 +36,11 @@ MainWindow 构造
 - 搜索：`ICollectionView.Filter`（标题/内容包含匹配，OrdinalIgnoreCase）；
   列表 SelectedItem 改 OneWay 绑定 + SelectionChanged 事件，过滤时编辑区保持原笔记。
 
-### 快捷键分层
+### 快捷键分层（作用域原则）
 
-- **全局**（RegisterHotKey）：toggleWindow、newNote —— 即使窗口隐藏也生效，但会拦截系统级按键
-- **窗口内**（InputBinding/事件）：hideWindow（Ctrl+W）、fontZoom（Ctrl+Wheel）、Del（列表 KeyDown）
+- **窗口相关 → 全局**（RegisterHotKey）：`toggleWindow`——窗口隐藏时也能唤出
+- **编辑相关 → 窗口内**（Window.InputBindings / 控件事件）：`newNote`（Ctrl+N）、`hideWindow`（Ctrl+W）、`fontZoom`（Ctrl+Wheel）、Del（列表 KeyDown）——只有焦点在 FlashStickNote 时生效
+- 反面教训：曾把 `newNote`（Ctrl+N）注册为全局热键，导致在 VS Code 等任何程序按 Ctrl+N 都会创建笔记，已改为窗口内快捷键
 - 破坏性按键（Del/Ctrl+W 等）**不要**注册为全局，否则劫持所有应用
 
 ## 关键实现

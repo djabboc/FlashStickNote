@@ -14,8 +14,8 @@ FlashStickNote v%VERSION%
 快速上手
 --------
 1. 解压后双击 FlashStickNote.exe
-2. Ctrl+Shift+N  全局快捷键：显示/隐藏窗口
-3. Ctrl+N        全局快捷键：快速新建笔记
+2. Ctrl+Shift+N  全局快捷键：显示/隐藏窗口（唯一全局热键，不会误伤其他程序）
+3. Ctrl+N        窗口内：快速新建笔记
 4. Ctrl+W        窗口内：隐藏到托盘（只隐藏，不切换）
 5. Del           焦点在左侧列表时：删除选中笔记（移入回收站，弹窗可关）
 6. Ctrl+滚轮     编辑区字体缩放（自动保存到 conf.json）

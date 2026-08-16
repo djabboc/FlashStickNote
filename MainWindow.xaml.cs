@@ -49,7 +49,7 @@ public partial class MainWindow : Window
         DataContext = new MainViewModel(_storage);
         ApplyAppIcon();
         ApplyConfig(conf);
-        ApplyWindowShortcut();
+        ApplyWindowShortcuts();
         InitEditor();
         InitEditorBinding();
         InitFontZoom();
@@ -390,25 +390,31 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void ApplyWindowShortcut()
+    private void ApplyWindowShortcuts()
     {
-        var combo = ConfigService.LoadShortcut().HideWindow;
+        var shortcut = ConfigService.LoadShortcut();
+        AddWindowShortcut(shortcut.NewNote, CreateNewNote, "新建笔记");
+        AddWindowShortcut(shortcut.HideWindow, HideToTray, "隐藏到托盘");
+    }
+
+    private void AddWindowShortcut(string combo, Action action, string name)
+    {
         try
         {
             var converter = new System.Windows.Input.KeyGestureConverter();
             if (converter.ConvertFromString(combo) is System.Windows.Input.KeyGesture gesture)
             {
-                InputBindings.Add(new System.Windows.Input.KeyBinding(new RelayCommand(HideToTray), gesture));
-                Logger.Log($"窗口内快捷键已注册: 隐藏到托盘={combo}");
+                InputBindings.Add(new System.Windows.Input.KeyBinding(new RelayCommand(action), gesture));
+                Logger.Log($"窗口内快捷键已注册: {name}={combo}");
             }
             else
             {
-                Logger.Log($"隐藏窗口快捷键解析失败: {combo}");
+                Logger.Log($"窗口内快捷键解析失败: {name}={combo}");
             }
         }
         catch (Exception ex)
         {
-            Logger.Log($"隐藏窗口快捷键解析失败: {combo} ({ex.Message})");
+            Logger.Log($"窗口内快捷键解析失败: {name}={combo} ({ex.Message})");
         }
     }
 
@@ -474,8 +480,7 @@ public partial class MainWindow : Window
 
         var shortcut = ConfigService.LoadShortcut();
         RegisterHotkey(handle, 0xBEEF, shortcut.ToggleWindow, ToggleWindow);
-        RegisterHotkey(handle, 0xBEFF, shortcut.NewNote, CreateNewNote);
-        Logger.Log($"快捷键注册: toggle={shortcut.ToggleWindow}({(_failedHotkeys.Contains(shortcut.ToggleWindow) ? "失败" : "成功")}), newNote={shortcut.NewNote}({(_failedHotkeys.Contains(shortcut.NewNote) ? "失败" : "成功")})");
+        Logger.Log($"全局快捷键注册: toggleWindow={shortcut.ToggleWindow}({(_failedHotkeys.Contains(shortcut.ToggleWindow) ? "失败" : "成功")})（newNote/hideWindow 为窗口内快捷键）");
 
         if (_failedHotkeys.Count > 0)
         {
