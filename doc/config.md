@@ -28,6 +28,7 @@
   "silentStart": false,                  // 启动后直接进托盘
   "hideListScrollbar": false,            // 隐藏左侧列表的垂直滚动条（隐藏后仍可用滚轮滚动）
   "hideEditorScrollbar": false,          // 隐藏右侧编辑区的垂直滚动条（隐藏后仍可用滚轮滚动）
+  "hideTitleBar": false,                 // 隐藏系统标题栏（无边框窗口，按住背景空白处拖动窗口，边缘可调整大小）
 
   // 以下留空 "" 表示跟随全局/主题
   "listTitleFontFamily": "",             // 列表标题字体

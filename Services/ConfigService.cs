@@ -41,6 +41,7 @@ public class AppConfig
     public bool SilentStart { get; set; } = false;
     public bool HideListScrollbar { get; set; } = false;
     public bool HideEditorScrollbar { get; set; } = false;
+    public bool HideTitleBar { get; set; } = false;
 }
 
 public static class ConfigService

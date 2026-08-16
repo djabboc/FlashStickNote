@@ -25,5 +25,6 @@
   "startWithWindows": true,
   "silentStart": true,
   "hideListScrollbar": true,
-  "hideEditorScrollbar": true
+  "hideEditorScrollbar": true,
+  "hideTitleBar": false
 }

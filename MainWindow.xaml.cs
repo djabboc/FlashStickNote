@@ -29,6 +29,13 @@ public partial class MainWindow : Window
         Logger.Log($"程序启动，exe 目录: {ConfigService.BaseDir}");
         Logger.Log($"conf.json: notesDir={conf.NotesDir}, notesFormat={conf.NotesFormat}, fontFamily={conf.FontFamily}");
 
+        if (conf.HideTitleBar)
+        {
+            WindowStyle = WindowStyle.None;
+            PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
+            Logger.Log("标题栏已隐藏（按住背景空白处可拖动窗口）");
+        }
+
         try
         {
             _storage = new NoteStorage(ConfigService.BaseDir, conf.NotesDir, conf.NotesFormat);
@@ -431,6 +438,45 @@ public partial class MainWindow : Window
         }
 
         return null;
+    }
+
+    private void OnPreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (WindowStyle != WindowStyle.None ||
+            e.ChangedButton != System.Windows.Input.MouseButton.Left ||
+            IsInteractiveSource(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        try
+        {
+            DragMove();
+        }
+        catch
+        {
+        }
+    }
+
+    private static bool IsInteractiveSource(DependencyObject? node)
+    {
+        while (node != null)
+        {
+            if (node is System.Windows.Controls.Primitives.TextBoxBase or
+                System.Windows.Controls.Primitives.ButtonBase or
+                System.Windows.Controls.ListBox or
+                System.Windows.Controls.ListBoxItem or
+                System.Windows.Controls.ScrollBar or
+                System.Windows.Controls.GridSplitter or
+                Controls.NoteTextEditor)
+            {
+                return true;
+            }
+
+            node = System.Windows.Media.VisualTreeHelper.GetParent(node);
+        }
+
+        return false;
     }
 
     private void ApplyWindowShortcuts()

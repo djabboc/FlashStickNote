@@ -30,6 +30,7 @@
 - 折行开关（`wordWrap`），关闭时横向滚动；`Alt+Z` 快速切换
 - **Shift+滚轮**：横向滚动内容编辑区（折行关闭时有横向范围时生效）
 - 垂直滚动条可分别隐藏（`hideListScrollbar` / `hideEditorScrollbar`，隐藏后滚轮仍可滚动）
+- 标题栏可隐藏（`hideTitleBar`）：无边框窗口，按住背景空白处可拖动，边缘可调整大小；关闭/最小化依赖快捷键与托盘
 - 内置撤销/重做（Ctrl+Z / Ctrl+Y）
 - 超链接识别：仅 http/https，蓝字+下划线（`linkColor` 可配），**Ctrl+单击**在默认浏览器打开
 - 字体/颜色：标题、内容、行号、链接均可在 conf.json 配置（留空 = 跟随全局/主题）
