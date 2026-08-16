@@ -4,7 +4,7 @@
   "titleFontSize": 18.0,
   "noteListFontSize": 13.0,
   "notesDir": "C:\\Users\\huang\\Desktop\\BackUp",
-  "notesFormat": "json",
+  "notesFormat": "txt",
   "allowMultiInstance": false,
   "newNoteFocus": "content",
   "listContentLines": 0,
