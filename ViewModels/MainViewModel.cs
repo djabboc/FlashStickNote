@@ -23,6 +23,10 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly int _listContentLines;
     private System.ComponentModel.ICollectionView? _notesView;
     private string _searchText = "";
+    private bool _useRegex;
+    private bool _matchWholeWord;
+    private bool _matchCase;
+    private string _searchError = "";
     private readonly Dictionary<string, int> _loadFailures = new(StringComparer.OrdinalIgnoreCase);
 
     public ObservableCollection<Note> Notes { get; } = new();
@@ -71,6 +75,37 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool UseRegex
+    {
+        get => _useRegex;
+        set => SetSearchOption(ref _useRegex, value);
+    }
+
+    public bool MatchWholeWord
+    {
+        get => _matchWholeWord;
+        set => SetSearchOption(ref _matchWholeWord, value);
+    }
+
+    public bool MatchCase
+    {
+        get => _matchCase;
+        set => SetSearchOption(ref _matchCase, value);
+    }
+
+    public string SearchError
+    {
+        get => _searchError;
+        private set
+        {
+            if (_searchError != value)
+            {
+                _searchError = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public MainViewModel(NoteStorage storage)
     {
         _storage = storage;
@@ -108,6 +143,8 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
+        var matcher = new NoteSearchMatcher(_searchText, _useRegex, _matchWholeWord, _matchCase);
+        SearchError = matcher.Error ?? "";
         var term = _searchText.Trim();
         if (term.Length == 0)
         {
@@ -116,11 +153,22 @@ public class MainViewModel : INotifyPropertyChanged
         else
         {
             _notesView.Filter = item => item is Note note &&
-                (note.Title.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                 note.Content.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0);
+                (matcher.IsMatch(note.Title) || matcher.IsMatch(note.Content));
         }
 
         _notesView.Refresh();
+    }
+
+    private void SetSearchOption(ref bool field, bool value, [CallerMemberName] string? name = null)
+    {
+        if (field == value)
+        {
+            return;
+        }
+
+        field = value;
+        OnPropertyChanged(name);
+        RefreshFilter();
     }
 
     private void InitWatcher()

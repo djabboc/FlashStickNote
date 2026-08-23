@@ -64,7 +64,7 @@
         <DockPanel Grid.Row="1" Grid.Column="0" Background="{DynamicResource Theme.ListBackground}">
             <Border DockPanel.Dock="Top" Padding="8" Background="{DynamicResource Theme.ListHeaderBackground}"
                     BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,0,0,1">
-                <Grid>
+                <StackPanel>
                     <Grid>
                         <TextBox x:Name="SearchBox"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
@@ -91,7 +91,26 @@
                             </TextBlock.Style>
                         </TextBlock>
                     </Grid>
-                </Grid>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <CheckBox Content="正则" IsChecked="{Binding UseRegex}" ToolTip="按 .NET 正则表达式匹配"/>
+                        <CheckBox Content="全字" IsChecked="{Binding MatchWholeWord}" Margin="12,0,0,0" ToolTip="只匹配完整单词"/>
+                        <CheckBox Content="区分大小写" IsChecked="{Binding MatchCase}" Margin="12,0,0,0" ToolTip="按输入的大小写匹配"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding SearchError}"
+                               Foreground="IndianRed"
+                               Margin="0,4,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
             </Border>
 
             <ListBox x:Name="NoteList"

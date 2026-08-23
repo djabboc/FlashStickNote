@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="FlashStickNote.ico" LogicalName="FlashStickNote.ico" />
+    <Compile Remove="tests/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
