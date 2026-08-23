@@ -17,17 +17,8 @@ public sealed class NoteTextEditor : TextEditor
             Document != null &&
             Document.TextLength > 0)
         {
-            var line = Document.GetLineByOffset(TextArea.Caret.Offset);
-            var startOffset = line.Offset;
-            var endOffset = line.EndOffset + line.DelimiterLength;
-
-            // The final empty line has no own delimiter, so select the prior delimiter too.
-            if (startOffset == endOffset && line.PreviousLine != null)
-            {
-                startOffset = line.PreviousLine.EndOffset;
-            }
-
-            TextArea.Selection = Selection.Create(TextArea, startOffset, endOffset);
+            var range = LineCutSelector.GetRange(Document.Text, TextArea.Caret.Offset);
+            TextArea.Selection = Selection.Create(TextArea, range.StartOffset, range.EndOffset);
         }
 
         if (e.Key is Key.Left or Key.Right or Key.Up or Key.Down &&

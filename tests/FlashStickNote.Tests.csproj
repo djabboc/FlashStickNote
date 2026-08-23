@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Controls\LineCutSelector.cs" Link="LineCutSelector.cs" />
     <Compile Include="..\Services\NoteSearchMatcher.cs" Link="NoteSearchMatcher.cs" />
   </ItemGroup>
 </Project>
