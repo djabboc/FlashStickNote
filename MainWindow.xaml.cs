@@ -194,6 +194,9 @@ public partial class MainWindow : Window
         ContentBox.TextArea.Options.ShowSpaces = conf.ShowSpaces;
         ContentBox.TextArea.Options.ShowTabs = conf.ShowTabs;
         ContentBox.TextArea.Options.ShowEndOfLine = conf.ShowEndOfLine;
+        DocumentStatisticsPanel.Visibility = conf.ShowDocumentStatistics
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         ContentBox.HorizontalScrollBarVisibility = conf.WordWrap
             ? System.Windows.Controls.ScrollBarVisibility.Disabled
             : System.Windows.Controls.ScrollBarVisibility.Auto;

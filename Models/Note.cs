@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using FlashStickNote.Services;
 
 namespace FlashStickNote.Models;
 
@@ -38,6 +39,8 @@ public class Note : INotifyPropertyChanged
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayTitle));
                 OnPropertyChanged(nameof(ContentPreview));
+                OnPropertyChanged(nameof(LineCount));
+                OnPropertyChanged(nameof(CharacterCount));
             }
         }
     }
@@ -83,6 +86,12 @@ public class Note : INotifyPropertyChanged
 
     [JsonIgnore]
     public bool IsEmpty => string.IsNullOrWhiteSpace(_title) && string.IsNullOrWhiteSpace(_content);
+
+    [JsonIgnore]
+    public int LineCount => DocumentStatisticsCalculator.Calculate(_content).LineCount;
+
+    [JsonIgnore]
+    public int CharacterCount => DocumentStatisticsCalculator.Calculate(_content).CharacterCount;
 
     private static string GetFirstLine(string text)
     {

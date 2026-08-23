@@ -46,6 +46,7 @@ public class AppConfig
     public bool ShowSpaces { get; set; } = false;
     public bool ShowTabs { get; set; } = false;
     public bool ShowEndOfLine { get; set; } = false;
+    public bool ShowDocumentStatistics { get; set; } = false;
 
     [JsonPropertyName("showLineFeed")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

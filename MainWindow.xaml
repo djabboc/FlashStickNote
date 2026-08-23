@@ -190,6 +190,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBox x:Name="TitleBox"
@@ -209,6 +210,22 @@
                                        Background="{DynamicResource Theme.EditorBackground}"
                                        Foreground="{DynamicResource Theme.EditorForeground}"
                                        VerticalScrollBarVisibility="Auto"/>
+            </Border>
+
+            <Border x:Name="DocumentStatisticsPanel"
+                    Grid.Row="2"
+                    Padding="8,3"
+                    Background="{DynamicResource Theme.ListHeaderBackground}"
+                    BorderBrush="{DynamicResource Theme.BorderColor}"
+                    BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="行数：" Foreground="{DynamicResource Theme.ListTertiaryForeground}"/>
+                    <TextBlock Text="{Binding SelectedNote.LineCount, TargetNullValue=0}"
+                               Foreground="{DynamicResource Theme.ListHeaderForeground}"/>
+                    <TextBlock Text="    字数：" Foreground="{DynamicResource Theme.ListTertiaryForeground}"/>
+                    <TextBlock Text="{Binding SelectedNote.CharacterCount, TargetNullValue=0}"
+                               Foreground="{DynamicResource Theme.ListHeaderForeground}"/>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>

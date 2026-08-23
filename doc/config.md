@@ -39,6 +39,7 @@
   "showSpaces": false,                   // 编辑区显示空格标记
   "showTabs": false,                     // 编辑区显示制表符标记
   "showEndOfLine": false,                // 编辑区显示行尾标记
+  "showDocumentStatistics": false,       // 编辑区底部显示当前笔记的行数和字数
 
   // 以下留空 "" 表示跟随全局/主题
   "listTitleFontFamily": "",             // 列表标题字体
@@ -54,6 +55,8 @@
 ```
 
 AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾标记显示，因此使用 `showEndOfLine` 统一控制。旧配置中的 `showLineFeed` 或 `showCarriageReturn` 仍可读取并自动迁移为开启状态；下次应用保存配置时会写成新字段。
+
+`showDocumentStatistics=true` 时，编辑区底部显示当前笔记正文的统计信息。行数按 CRLF、CR 或 LF 作为一次逻辑换行计算；字数统计非空白字符，空格、制表符和换行不计入。
 
 ## shortcut.json（全部快捷键及默认值）
 

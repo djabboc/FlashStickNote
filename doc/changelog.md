@@ -120,6 +120,10 @@
 - `publish.ps1` 未传 `-Version` 时自动读取 csproj 的 `<Version>`
 - 发布文档明确区分本机构建输出、publish 中间产物与可分发 zip，并补充配置默认值和校验边界
 
+### 阶段 30：编辑区统计栏
+- `showDocumentStatistics` 控制编辑区底部行数、字数统计的显示，默认关闭
+- 行数支持 CRLF/CR/LF；字数仅统计非空白字符
+
 ## 历史分支
 
 - `master`：阶段 1-15 的 TextBox 编辑区版本（自绘行号），保留作为回退点

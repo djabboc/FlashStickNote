@@ -29,6 +29,7 @@
 - 行号：内置精确行号，折行按逻辑行起点标注（`showLineNumbers`）
 - 折行开关（`wordWrap`），关闭时横向滚动；`Alt+Z` 快速切换
 - **Shift+滚轮**：横向滚动内容编辑区（折行关闭时有横向范围时生效）
+- 可选统计栏：`showDocumentStatistics=true` 时在编辑区底部实时显示当前笔记正文的行数和字数
 - 垂直滚动条可分别隐藏（`hideListScrollbar` / `hideEditorScrollbar`，隐藏后滚轮仍可滚动）
 - 标题栏可隐藏（`hideTitleBar`）：无边框窗口，按住背景空白处可拖动，边缘可调整大小；关闭/最小化依赖快捷键与托盘
 - 内置撤销/重做（Ctrl+Z / Ctrl+Y）

@@ -29,5 +29,6 @@
   "hideTitleBar": false,
   "showSpaces": false,
   "showTabs": false,
-  "showEndOfLine": false
+  "showEndOfLine": false,
+  "showDocumentStatistics": false
 }

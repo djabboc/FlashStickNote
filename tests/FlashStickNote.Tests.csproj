@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="..\Controls\LineCutSelector.cs" Link="LineCutSelector.cs" />
     <Compile Include="..\Services\ConfigService.cs" Link="ConfigService.cs" />
+    <Compile Include="..\Services\DocumentStatistics.cs" Link="DocumentStatistics.cs" />
     <Compile Include="..\Services\Logger.cs" Link="Logger.cs" />
     <Compile Include="..\Services\NoteSearchMatcher.cs" Link="NoteSearchMatcher.cs" />
   </ItemGroup>

@@ -53,4 +53,11 @@ var serializedConfig = JsonSerializer.Serialize(new AppConfig { ShowEndOfLine = 
 Assert(serializedConfig.Contains("\"showEndOfLine\":true", StringComparison.Ordinal), "New configuration should serialize showEndOfLine.");
 Assert(!serializedConfig.Contains("showLineFeed", StringComparison.Ordinal), "New configuration should not serialize legacy line-feed settings.");
 
+var emptyStatistics = DocumentStatisticsCalculator.Calculate("");
+Assert(emptyStatistics == new DocumentStatistics(0, 0), "Empty content should have zero lines and characters.");
+
+var mixedLineEndingsStatistics = DocumentStatisticsCalculator.Calculate("abc\r\n你好 \t!\rb\n");
+Assert(mixedLineEndingsStatistics.LineCount == 4, "CRLF, CR, and LF should each count as one logical line break.");
+Assert(mixedLineEndingsStatistics.CharacterCount == 7, "Character count should exclude whitespace and include Chinese characters and punctuation.");
+
 Console.WriteLine("All FlashStickNote logic tests passed.");
