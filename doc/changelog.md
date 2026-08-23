@@ -116,6 +116,10 @@
 - `showLineFeed` 与 `showCarriageReturn` 合并为 `showEndOfLine`
 - 读取旧配置时仍兼容两项旧字段，后续保存将使用新字段
 
+### 阶段 29：发布版本自动读取
+- `publish.ps1` 未传 `-Version` 时自动读取 csproj 的 `<Version>`
+- 发布文档明确区分本机构建输出、publish 中间产物与可分发 zip，并补充配置默认值和校验边界
+
 ## 历史分支
 
 - `master`：阶段 1-15 的 TextBox 编辑区版本（自绘行号），保留作为回退点

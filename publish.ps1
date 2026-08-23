@@ -1,5 +1,5 @@
-param(
-    [string]$Version = "1.0.0",
+﻿param(
+    [string]$Version = "",
     [string]$Runtime = "win-x64"
 )
 
@@ -10,6 +10,17 @@ param(
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 $proj = Join-Path $root "FlashStickNote.csproj"
+
+if ([string]::IsNullOrWhiteSpace($Version)) {
+    [xml]$projectXml = Get-Content -Raw -LiteralPath $proj
+    $versionNode = Select-Xml -Xml $projectXml -XPath "/Project/PropertyGroup/Version" | Select-Object -First 1
+    if ($null -eq $versionNode -or [string]::IsNullOrWhiteSpace($versionNode.Node.InnerText)) {
+        throw "无法从 FlashStickNote.csproj 读取 <Version>，请补充版本号或使用 -Version 指定。"
+    }
+
+    $Version = $versionNode.Node.InnerText.Trim()
+}
+
 $publishDir = Join-Path $root "bin\Release\net9.0-windows\$Runtime\publish"
 $releaseDir = Join-Path $root "release"
 $stageDir = Join-Path $releaseDir "FlashStickNote-v$Version-$Runtime"

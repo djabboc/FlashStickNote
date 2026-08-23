@@ -3,8 +3,12 @@
 ## 一键发布
 
 ```powershell
-.\publish.ps1 -Version 1.0.0          # 默认 win-x64；可加 -Runtime win-arm64
+.\publish.ps1                         # 版本自动读取 FlashStickNote.csproj；默认 win-x64
+.\publish.ps1 -Runtime win-arm64      # 发布 ARM64 包
+.\publish.ps1 -Version 1.0.1          # 仅在临时覆盖项目版本时使用
 ```
+
+发布前只需修改 `FlashStickNote.csproj` 的 `<Version>`，再执行 `publish.ps1`。脚本会把该版本写入程序集和 zip 文件名，避免手工参数与项目版本不一致。
 
 脚本自动完成（幂等，可重复执行）：
 
@@ -33,8 +37,14 @@ git tag v1.0.1
 
 - `release/` 已 gitignore，不入库
 - zip 内配置为**干净默认模板**（Microsoft YaHei UI、notes 目录、light 主题），不含开发机个人设置
-- 版本号来源：csproj `<Version>`（默认值）+ 脚本参数覆盖
+- 版本号默认来源：csproj `<Version>`；`-Version` 仅用于临时覆盖
 - 图标已内嵌 exe（ApplicationIcon + 内嵌资源自提取），zip 无需附带 ico
+
+## 构建输出与发布包
+
+- `bin\Release\net9.0-windows\` 是 `dotnet build -c Release` 的构建输出，用于本机验证，不作为正式分发包。它可能没有干净的配置、主题和 README，也可能混入本机运行生成的数据。
+- `bin\Release\net9.0-windows\{RID}\publish\` 是 `dotnet publish` 的中间产物。
+- `release\FlashStickNote-v{版本}-{RID}.zip` 是唯一推荐分发的发布包：脚本已经复制默认配置、快捷键、主题和 README。
 
 ## 发布类型对比
 

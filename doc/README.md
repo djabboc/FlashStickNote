@@ -21,8 +21,8 @@ dotnet run
 # 构建
 dotnet build
 
-# 发布 v1.0.0 标准包（框架依赖 Release + 模板 + 主题 → zip）
-.\publish.ps1 -Version 1.0.0
+# 发布标准包（版本自动读取 csproj 的 <Version>）
+.\publish.ps1
 ```
 
 ## 运行要求
