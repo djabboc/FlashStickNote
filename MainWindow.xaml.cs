@@ -461,7 +461,7 @@ public partial class MainWindow : Window
     private void MenuBarBackground_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (e.ChangedButton != System.Windows.Input.MouseButton.Left ||
-            !CanDragFromMenuBar(e.OriginalSource as DependencyObject))
+            !CanDragFrom(e.OriginalSource as DependencyObject))
         {
             return;
         }
@@ -469,9 +469,6 @@ public partial class MainWindow : Window
         e.Handled = true;
         TryDragWindow();
     }
-
-    internal static bool CanDragFromMenuBar(DependencyObject? source)
-        => !HasAncestor<System.Windows.Controls.MenuItem>(source);
 
     private void TryDragWindow()
     {
@@ -601,11 +598,16 @@ public partial class MainWindow : Window
     private void NoteList_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         _rightClickedNoteItem = FindAncestor<System.Windows.Controls.ListBoxItem>(e.OriginalSource as DependencyObject);
-        if (_rightClickedNoteItem != null)
+        if (_rightClickedNoteItem == null)
         {
-            _rightClickedNoteItem.IsSelected = true;
-            _rightClickedNoteItem.Focus();
+            // Empty list space must not change selection: changing away from an empty
+            // draft intentionally removes that draft from the in-memory list.
+            e.Handled = true;
+            return;
         }
+
+        _rightClickedNoteItem.IsSelected = true;
+        _rightClickedNoteItem.Focus();
     }
 
     private void NoteList_ContextMenuOpening(object sender, System.Windows.Controls.ContextMenuEventArgs e)
@@ -737,6 +739,15 @@ public partial class MainWindow : Window
     }
 
     private void NewNoteMenuItem_Click(object sender, RoutedEventArgs e) => CreateNewNote();
+
+    private void FileMenuButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button button && button.ContextMenu != null)
+        {
+            button.ContextMenu.PlacementTarget = button;
+            button.ContextMenu.IsOpen = true;
+        }
+    }
 
     private void HideToTrayMenuItem_Click(object sender, RoutedEventArgs e) => HideToTray();
 

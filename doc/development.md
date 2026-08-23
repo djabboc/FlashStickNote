@@ -107,7 +107,7 @@ csproj `ApplicationIcon`（exe 内嵌）+ `EmbeddedResource LogicalName`（运�
 - 本项目无单元测试框架；采用**临时控制台 harness**（`fsntestN`，ProjectReference 引用主工程）做行为验证：
   - 存储层（格式迁移、回收站、目录导入、空笔记规则）用纯控制台断言
   - UI 层（行号测量、链接识别、视觉控件）用 STA + 真实 WPF 控件 + ground truth 对比
-- 当前 `tests/FlashStickNote.Tests.csproj` 已改为引用主工程的 STA/WPF 测试程序；窗口交互回归通过实际 `MainWindow` 的命中测试覆盖普通标题栏和无标题栏两种配置。
+- 当前 `tests/FlashStickNote.Tests.csproj` 已改为引用主工程的 STA/WPF 测试程序；窗口交互回归通过实际 `MainWindow` 的命中测试覆盖普通标题栏和无标题栏两种配置，并覆盖文件按钮开关、列表空白右键及空草稿保留。
 - 真机验证：临时改 bin conf → 启动 exe → 检查 log.txt / MainWindowTitle / 注册表 → 还原配置
 - 行号测量曾用第二个真实 TextBox 逐行测量前缀文本高度作为 ground truth（300 行 0 误差）
 

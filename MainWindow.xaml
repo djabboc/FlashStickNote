@@ -53,23 +53,27 @@
                 Grid.Row="0" Grid.ColumnSpan="3"
                 Background="{DynamicResource Theme.ListHeaderBackground}"
                 PreviewMouseLeftButtonDown="MenuBarBackground_PreviewMouseLeftButtonDown">
-            <Menu x:Name="AppMenu"
-                  HorizontalAlignment="Left"
-                  Width="48"
-                  Background="Transparent"
-                  Foreground="{DynamicResource Theme.ListHeaderForeground}">
-                <MenuItem Header="文件" Width="48" HorizontalContentAlignment="Center">
+            <Button x:Name="FileMenuButton"
+                    HorizontalAlignment="Left"
+                    Width="48"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="FileMenuButton_Click">
+                文件
+                <Button.ContextMenu>
+                    <ContextMenu>
                     <MenuItem Header="新建笔记" Click="NewNoteMenuItem_Click"/>
                     <MenuItem Header="隐藏到托盘" Click="HideToTrayMenuItem_Click"/>
                     <Separator/>
                     <MenuItem Header="退出" Click="ExitMenuItem_Click"/>
-                </MenuItem>
-            </Menu>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
         </Border>
 
         <!-- 左侧笔记列表 -->
         <DockPanel Grid.Row="1" Grid.Column="0" Background="{DynamicResource Theme.ListBackground}">
-            <Border DockPanel.Dock="Top" Padding="8" Background="{DynamicResource Theme.ListHeaderBackground}"
+            <Border x:Name="SearchPanel" DockPanel.Dock="Top" Padding="8" Background="{DynamicResource Theme.ListHeaderBackground}"
                     BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,0,0,1">
                 <StackPanel>
                     <Grid>

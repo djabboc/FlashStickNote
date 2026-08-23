@@ -3,10 +3,12 @@ using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using FlashStickNote;
 using FlashStickNote.Controls;
 using FlashStickNote.Services;
+using FlashStickNote.ViewModels;
 
 internal static class Program
 {
@@ -91,20 +93,40 @@ internal static class Program
             window.UpdateLayout();
 
             var menuBar = FindNamed<Border>(window, "MenuBarBackground");
-            var appMenu = FindNamed<Menu>(window, "AppMenu");
+            var fileMenuButton = FindNamed<Button>(window, "FileMenuButton");
+            var searchPanel = FindNamed<Border>(window, "SearchPanel");
             var noteList = FindNamed<ListBox>(window, "NoteList");
-            Assert(menuBar.ActualWidth > appMenu.ActualWidth, "The menu bar must have a blank area outside the File menu.");
+            Assert(menuBar.ActualWidth > fileMenuButton.ActualWidth, "The menu bar must have a blank area outside the File button.");
 
             var blankMenuPoint = menuBar.TranslatePoint(new Point(menuBar.ActualWidth - 4, menuBar.ActualHeight / 2), window);
             var menuBlankHit = window.InputHitTest(blankMenuPoint) as DependencyObject;
-            Assert(!HasAncestor<MenuItem>(menuBlankHit), "Clicking the right blank menu-bar area must not target the File menu item.");
-            Assert(MainWindow.CanDragFromMenuBar(menuBlankHit), "The menu-bar blank area must be draggable in both title-bar modes.");
+            Assert(!HasAncestor<Button>(menuBlankHit), "Clicking the right blank menu-bar area must not target the File button.");
+            Assert(MainWindow.CanDragFrom(menuBlankHit), "The menu-bar blank area must be draggable in both title-bar modes.");
+            InvokePrivate(window, "FileMenuButton_Click", fileMenuButton, new RoutedEventArgs());
+            var fileMenu = fileMenuButton.ContextMenu ?? throw new InvalidOperationException("The File button must have a menu.");
+            Assert(fileMenu.IsOpen, "The File menu must open from the File button.");
+            fileMenu.IsOpen = false;
+
+            var searchBlankPoint = searchPanel.TranslatePoint(new Point(searchPanel.ActualWidth - 4, searchPanel.ActualHeight - 4), window);
+            var searchBlankHit = window.InputHitTest(searchBlankPoint) as DependencyObject;
+            Assert(!HasAncestor<Button>(searchBlankHit), "Clicking below the search controls must not target the File button.");
 
             var blankListPoint = noteList.TranslatePoint(new Point(noteList.ActualWidth / 2, noteList.ActualHeight - 4), window);
             var listBlankHit = window.InputHitTest(blankListPoint) as DependencyObject;
             Assert(MainWindow.CanDragFrom(listBlankHit), $"The note-list blank area must be draggable in both title-bar modes. Hit: {DescribeAncestors(listBlankHit)}");
 
             Assert(!MainWindow.CanOpenNoteContextMenu(null), "Right-clicking blank list space must not open the note context menu.");
+
+            var viewModel = (MainViewModel)window.DataContext;
+            viewModel.NewNote();
+            var emptyDraft = viewModel.SelectedNote ?? throw new InvalidOperationException("New note should select an empty draft.");
+            var noteCount = viewModel.Notes.Count;
+            ((UIElement)listBlankHit!).RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Right)
+            {
+                RoutedEvent = UIElement.PreviewMouseRightButtonDownEvent,
+            });
+            Assert(viewModel.Notes.Count == noteCount && viewModel.Notes.Contains(emptyDraft), "Right-clicking blank list space must not remove an empty draft.");
+            Assert(ReferenceEquals(viewModel.SelectedNote, emptyDraft), "Right-clicking blank list space must preserve the selected empty draft.");
         }
         finally
         {
