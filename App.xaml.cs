@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using FlashStickNote.Services;
 
@@ -65,11 +66,8 @@ public partial class App : System.Windows.Application
         MainWindow = window;
         if (conf.SilentStart)
         {
-            window.Opacity = 0;
-            window.Show();
-            window.Hide();
-            window.Opacity = 1;
-            Logger.Log("静默启动：已最小化到托盘");
+            _ = new WindowInteropHelper(window).EnsureHandle();
+            Logger.Log("静默启动：已创建窗口句柄并驻留托盘");
         }
         else
         {

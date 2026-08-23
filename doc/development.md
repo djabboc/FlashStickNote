@@ -15,7 +15,7 @@ App.OnStartup
  ├─ Logger.Init + 全局异常兜底（DispatcherUnhandledException → 记日志阻止闪退）
  ├─ 单实例（Mutex + EventWaitHandle 信号 → 已有实例 ShowWindow）
  ├─ AutoStartService.Apply(startWithWindows)
- └─ 创建 MainWindow（silentStart 时 Opacity=0 → Show → Hide 防闪窗）
+ └─ 创建 MainWindow（silentStart 时 WindowInteropHelper.EnsureHandle 创建句柄，不显示窗口）
 
 MainWindow 构造
  ├─ ApplyThemeResources（先于 InitializeComponent，设置 DynamicResource 主题画刷）
@@ -95,7 +95,7 @@ csproj `ApplicationIcon`（exe 内嵌）+ `EmbeddedResource LogicalName`（运�
 | WPF/WinForms 类型歧义（Application/TextBox/Size/Color/Brushes…） | UseWindowsForms 注入全局 using | 全限定或用别名 |
 | WPF SDK 隐式 using 不含 System.IO | — | 显式 `using System.IO` |
 | 单实例 Shutdown 后窗口仍出现 | StartupUri 处理时机 | 移除 StartupUri 手动建窗 |
-| 静默启动闪窗 | Show 后再 Hide 有闪烁 | Opacity=0 → Show → Hide → 恢复 |
+| 静默启动闪窗 | 为创建窗口句柄而调用 Show/Hide | `WindowInteropHelper.EnsureHandle()` 只创建句柄，不显示窗口 |
 | 构建删除用户 bin 配置 | 移除 csproj copy 项触发增量清理 | 配置改为运行时自生成 |
 | 单实例失败 | Mutex 未持有引用被 GC | static 字段持有 |
 | 通知已有实例显示失败 | 信号到达时 MainWindow 未创建 | DispatcherPriority.ApplicationIdle 延迟执行 |
