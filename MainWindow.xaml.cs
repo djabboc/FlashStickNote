@@ -466,6 +466,8 @@ public partial class MainWindow : Window
         {
             if (node is System.Windows.Controls.Primitives.TextBoxBase or
                 System.Windows.Controls.Primitives.ButtonBase or
+                System.Windows.Controls.MenuItem or
+                System.Windows.Controls.Primitives.MenuBase or
                 System.Windows.Controls.ListBox or
                 System.Windows.Controls.ListBoxItem or
                 System.Windows.Controls.Primitives.ScrollBar or
