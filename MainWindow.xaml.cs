@@ -549,7 +549,22 @@ public partial class MainWindow : Window
         }
     }
 
-    private void DeleteButton_Click(object sender, RoutedEventArgs e) => DeleteSelectedWithConfirm();
+    private void NoteList_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        var current = e.OriginalSource as DependencyObject;
+        while (current != null && current is not System.Windows.Controls.ListBoxItem)
+        {
+            current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+        }
+
+        if (current is System.Windows.Controls.ListBoxItem item)
+        {
+            item.IsSelected = true;
+            item.Focus();
+        }
+    }
+
+    private void DeleteContextMenuItem_Click(object sender, RoutedEventArgs e) => DeleteSelectedWithConfirm();
 
     private void DeleteSelectedWithConfirm()
     {
@@ -651,7 +666,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void NewNoteButton_Click(object sender, RoutedEventArgs e) => CreateNewNote();
+    private void NewNoteMenuItem_Click(object sender, RoutedEventArgs e) => CreateNewNote();
+
+    private void HideToTrayMenuItem_Click(object sender, RoutedEventArgs e) => HideToTray();
+
+    private void ExitMenuItem_Click(object sender, RoutedEventArgs e) => ExitApp();
 
     public void ShowWindow()
     {

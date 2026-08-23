@@ -39,24 +39,33 @@
     </Window.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="260" MinWidth="140"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*" MinWidth="300"/>
         </Grid.ColumnDefinitions>
 
+        <Menu Grid.Row="0" Grid.ColumnSpan="3"
+              Background="{DynamicResource Theme.ListHeaderBackground}"
+              Foreground="{DynamicResource Theme.ListHeaderForeground}">
+            <MenuItem Header="文件">
+                <MenuItem Header="新建笔记" Click="NewNoteMenuItem_Click"/>
+                <MenuItem Header="隐藏到托盘" Click="HideToTrayMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="退出" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+
         <!-- 左侧笔记列表 -->
-        <DockPanel Grid.Column="0" Background="{DynamicResource Theme.ListBackground}">
+        <DockPanel Grid.Row="1" Grid.Column="0" Background="{DynamicResource Theme.ListBackground}">
             <Border DockPanel.Dock="Top" Padding="8" Background="{DynamicResource Theme.ListHeaderBackground}"
                     BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,0,0,1">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid Grid.Column="0" Margin="0,0,8,0">
+                    <Grid>
                         <TextBox x:Name="SearchBox"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                  Padding="6,3"
@@ -82,9 +91,6 @@
                             </TextBlock.Style>
                         </TextBlock>
                     </Grid>
-
-                    <Button Grid.Column="1" Content="新建" Click="NewNoteButton_Click" Margin="4,0"/>
-                    <Button Grid.Column="2" Content="删除" Click="DeleteButton_Click" Margin="4,0"/>
                 </Grid>
             </Border>
 
@@ -92,11 +98,17 @@
                      ItemsSource="{Binding Notes}"
                      SelectedItem="{Binding SelectedNote, Mode=OneWay}"
                      SelectionChanged="NoteList_SelectionChanged"
+                     PreviewMouseRightButtonDown="NoteList_PreviewMouseRightButtonDown"
                      KeyDown="NoteList_KeyDown"
                      BorderThickness="0"
                      Background="{DynamicResource Theme.ListBackground}"
                      Foreground="{DynamicResource Theme.ListForeground}"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="删除" Click="DeleteContextMenuItem_Click"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                         <Setter Property="Foreground" Value="{DynamicResource Theme.ListForeground}"/>
@@ -146,7 +158,7 @@
         </DockPanel>
 
         <!-- 左右分隔条 -->
-        <GridSplitter Grid.Column="1"
+        <GridSplitter Grid.Row="1" Grid.Column="1"
                       Width="5"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
@@ -155,7 +167,7 @@
                       ResizeDirection="Columns"/>
 
         <!-- 右侧编辑区 -->
-        <Grid Grid.Column="2">
+        <Grid Grid.Row="1" Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
