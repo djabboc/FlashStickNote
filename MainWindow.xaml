@@ -52,9 +52,10 @@
         <Border Grid.Row="0" Grid.ColumnSpan="3"
                 Background="{DynamicResource Theme.ListHeaderBackground}">
             <Menu HorizontalAlignment="Left"
+                  Width="48"
                   Background="Transparent"
                   Foreground="{DynamicResource Theme.ListHeaderForeground}">
-                <MenuItem Header="文件">
+                <MenuItem Header="文件" Width="48" HorizontalContentAlignment="Center">
                     <MenuItem Header="新建笔记" Click="NewNoteMenuItem_Click"/>
                     <MenuItem Header="隐藏到托盘" Click="HideToTrayMenuItem_Click"/>
                     <Separator/>
