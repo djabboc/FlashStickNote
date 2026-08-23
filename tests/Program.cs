@@ -1,5 +1,6 @@
 using FlashStickNote.Services;
 using FlashStickNote.Controls;
+using System.Text.Json;
 
 static void Assert(bool condition, string message)
 {
@@ -39,5 +40,17 @@ Assert(finalLine == (5, 8), "Cutting the final line should select through the do
 
 var finalEmptyLine = LineCutSelector.GetRange("one\r\n", 5);
 Assert(finalEmptyLine == (3, 5), "Cutting a final empty line should remove the preceding CRLF.");
+
+var options = new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true,
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+};
+var legacyConfig = JsonSerializer.Deserialize<AppConfig>("{\"showLineFeed\":true}", options);
+Assert(legacyConfig?.ShowEndOfLine == true, "Legacy line-feed configuration should migrate to showEndOfLine.");
+
+var serializedConfig = JsonSerializer.Serialize(new AppConfig { ShowEndOfLine = true }, options);
+Assert(serializedConfig.Contains("\"showEndOfLine\":true", StringComparison.Ordinal), "New configuration should serialize showEndOfLine.");
+Assert(!serializedConfig.Contains("showLineFeed", StringComparison.Ordinal), "New configuration should not serialize legacy line-feed settings.");
 
 Console.WriteLine("All FlashStickNote logic tests passed.");

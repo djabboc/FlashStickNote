@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FlashStickNote.Services;
 
@@ -44,8 +45,23 @@ public class AppConfig
     public bool HideTitleBar { get; set; } = false;
     public bool ShowSpaces { get; set; } = false;
     public bool ShowTabs { get; set; } = false;
-    public bool ShowLineFeed { get; set; } = false;
-    public bool ShowCarriageReturn { get; set; } = false;
+    public bool ShowEndOfLine { get; set; } = false;
+
+    [JsonPropertyName("showLineFeed")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool LegacyShowLineFeed
+    {
+        get => false;
+        set => ShowEndOfLine |= value;
+    }
+
+    [JsonPropertyName("showCarriageReturn")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool LegacyShowCarriageReturn
+    {
+        get => false;
+        set => ShowEndOfLine |= value;
+    }
 }
 
 public static class ConfigService

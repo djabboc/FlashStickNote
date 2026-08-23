@@ -112,6 +112,10 @@
 ### 阶段 27：制表符显示配置
 - `conf.json` 新增 `showTabs`，默认关闭；开启后编辑区以 AvalonEdit 标记显示制表符
 
+### 阶段 28：统一行尾标记配置
+- `showLineFeed` 与 `showCarriageReturn` 合并为 `showEndOfLine`
+- 读取旧配置时仍兼容两项旧字段，后续保存将使用新字段
+
 ## 历史分支
 
 - `master`：阶段 1-15 的 TextBox 编辑区版本（自绘行号），保留作为回退点

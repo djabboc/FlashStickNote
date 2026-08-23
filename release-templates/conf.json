@@ -29,6 +29,5 @@
   "hideTitleBar": false,
   "showSpaces": false,
   "showTabs": false,
-  "showLineFeed": false,
-  "showCarriageReturn": false
+  "showEndOfLine": false
 }
