@@ -86,6 +86,10 @@
 - 从托盘或全局热键显示窗口时，立即恢复编辑区键盘焦点，并在输入队列中再次确认
 - 静默启动后首次唤出窗口即可使用窗口内 `Ctrl+N` 新建笔记
 
+### 阶段 21：编辑区不可见字符显示
+- `conf.json` 新增 `showSpaces`、`showLineFeed`、`showCarriageReturn`，默认均为关闭
+- 使用 AvalonEdit 原生空格和行尾标记；Windows 的 CRLF 以一个行尾标记显示
+
 ## 历史分支
 
 - `master`：阶段 1-15 的 TextBox 编辑区版本（自绘行号），保留作为回退点

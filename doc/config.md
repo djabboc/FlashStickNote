@@ -29,6 +29,9 @@
   "hideListScrollbar": false,            // 隐藏左侧列表的垂直滚动条（隐藏后仍可用滚轮滚动）
   "hideEditorScrollbar": false,          // 隐藏右侧编辑区的垂直滚动条（隐藏后仍可用滚轮滚动）
   "hideTitleBar": false,                 // 隐藏系统标题栏（无边框窗口，按住背景空白处拖动窗口，边缘可调整大小）
+  "showSpaces": false,                   // 编辑区显示空格标记
+  "showLineFeed": false,                 // 编辑区显示换行符标记
+  "showCarriageReturn": false,           // 编辑区显示回车符标记
 
   // 以下留空 "" 表示跟随全局/主题
   "listTitleFontFamily": "",             // 列表标题字体
@@ -42,6 +45,8 @@
   "linkColor": ""                        // 超链接颜色（默认蓝色）
 }
 ```
+
+AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾标记显示。因此 `showLineFeed` 或 `showCarriageReturn` 任一为 `true` 时都会显示行尾标记；两个配置仍可分别设置，便于不同来源文本的配置迁移。
 
 ## shortcut.json（全部快捷键及默认值）
 

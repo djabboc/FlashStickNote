@@ -42,6 +42,9 @@ public class AppConfig
     public bool HideListScrollbar { get; set; } = false;
     public bool HideEditorScrollbar { get; set; } = false;
     public bool HideTitleBar { get; set; } = false;
+    public bool ShowSpaces { get; set; } = false;
+    public bool ShowLineFeed { get; set; } = false;
+    public bool ShowCarriageReturn { get; set; } = false;
 }
 
 public static class ConfigService

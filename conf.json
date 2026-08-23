@@ -26,5 +26,8 @@
   "silentStart": true,
   "hideListScrollbar": true,
   "hideEditorScrollbar": true,
-  "hideTitleBar": true
+  "hideTitleBar": true,
+  "showSpaces": false,
+  "showLineFeed": false,
+  "showCarriageReturn": false
 }
