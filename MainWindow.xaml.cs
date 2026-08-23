@@ -656,6 +656,18 @@ public partial class MainWindow : Window
         Show();
         WindowState = WindowState.Normal;
         Activate();
+        EnsureWindowInputFocus();
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input,
+            new Action(EnsureWindowInputFocus));
+    }
+
+    private void EnsureWindowInputFocus()
+    {
+        Activate();
+        if (!IsKeyboardFocusWithin)
+        {
+            ContentBox.Focus();
+        }
     }
 
     private void InitTrayIcon()
