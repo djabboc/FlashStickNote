@@ -30,5 +30,5 @@
   "showSpaces": true,
   "showEndOfLine": true,
   "showTabs": true,
-  "showDocumentStatistics": false
+  "showDocumentStatistics": true
 }
