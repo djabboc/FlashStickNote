@@ -35,7 +35,7 @@
   "silentStart": false,                  // 启动后创建窗口句柄并直接进托盘，不显示窗口
   "hideListScrollbar": false,            // 隐藏左侧列表的垂直滚动条（隐藏后仍可用滚轮滚动）
   "hideEditorScrollbar": false,          // 隐藏右侧编辑区的垂直滚动条（隐藏后仍可用滚轮滚动）
-  "hideTitleBar": false,                 // 隐藏系统标题栏（无边框窗口，按住背景空白处拖动窗口，边缘可调整大小）
+  "hideTitleBar": false,                 // 隐藏系统标题栏（无边框窗口；菜单栏右侧和列表底部等空白区域可拖动，边缘可调整大小）
   "showSpaces": false,                   // 编辑区显示空格标记
   "showTabs": false,                     // 编辑区显示制表符标记
   "showEndOfLine": false,                // 编辑区显示行尾标记

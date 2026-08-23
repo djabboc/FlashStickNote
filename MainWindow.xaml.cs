@@ -472,7 +472,6 @@ public partial class MainWindow : Window
                 System.Windows.Controls.Primitives.ButtonBase or
                 System.Windows.Controls.MenuItem or
                 System.Windows.Controls.Primitives.MenuBase or
-                System.Windows.Controls.ListBox or
                 System.Windows.Controls.ListBoxItem or
                 System.Windows.Controls.Primitives.ScrollBar or
                 System.Windows.Controls.GridSplitter or

@@ -49,16 +49,19 @@
             <ColumnDefinition Width="*" MinWidth="300"/>
         </Grid.ColumnDefinitions>
 
-        <Menu Grid.Row="0" Grid.ColumnSpan="3"
-              Background="{DynamicResource Theme.ListHeaderBackground}"
-              Foreground="{DynamicResource Theme.ListHeaderForeground}">
-            <MenuItem Header="文件">
-                <MenuItem Header="新建笔记" Click="NewNoteMenuItem_Click"/>
-                <MenuItem Header="隐藏到托盘" Click="HideToTrayMenuItem_Click"/>
-                <Separator/>
-                <MenuItem Header="退出" Click="ExitMenuItem_Click"/>
-            </MenuItem>
-        </Menu>
+        <Border Grid.Row="0" Grid.ColumnSpan="3"
+                Background="{DynamicResource Theme.ListHeaderBackground}">
+            <Menu HorizontalAlignment="Left"
+                  Background="Transparent"
+                  Foreground="{DynamicResource Theme.ListHeaderForeground}">
+                <MenuItem Header="文件">
+                    <MenuItem Header="新建笔记" Click="NewNoteMenuItem_Click"/>
+                    <MenuItem Header="隐藏到托盘" Click="HideToTrayMenuItem_Click"/>
+                    <Separator/>
+                    <MenuItem Header="退出" Click="ExitMenuItem_Click"/>
+                </MenuItem>
+            </Menu>
+        </Border>
 
         <!-- 左侧笔记列表 -->
         <DockPanel Grid.Row="1" Grid.Column="0" Background="{DynamicResource Theme.ListBackground}">
