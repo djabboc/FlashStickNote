@@ -1,63 +1,173 @@
-using FlashStickNote.Services;
-using FlashStickNote.Controls;
+using System.IO;
+using System.Reflection;
 using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using FlashStickNote;
+using FlashStickNote.Controls;
+using FlashStickNote.Services;
 
-static void Assert(bool condition, string message)
+internal static class Program
 {
-    if (!condition)
+    [STAThread]
+    private static int Main()
     {
-        throw new InvalidOperationException(message);
+        try
+        {
+            RunLogicTests();
+            RunWindowInteractionTests();
+            Console.WriteLine("All FlashStickNote tests passed.");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+            return 1;
+        }
+    }
+
+    private static void RunLogicTests()
+    {
+        var defaultMatcher = new NoteSearchMatcher("note", false, false, false);
+        Assert(defaultMatcher.IsMatch("My NOTEbook"), "Default search should ignore case and match substrings.");
+
+        var wholeWordMatcher = new NoteSearchMatcher("note", false, true, false);
+        Assert(wholeWordMatcher.IsMatch("A note."), "Whole-word search should match a complete word.");
+        Assert(!wholeWordMatcher.IsMatch("notebook"), "Whole-word search should not match a longer word.");
+
+        var caseMatcher = new NoteSearchMatcher("Note", false, false, true);
+        Assert(caseMatcher.IsMatch("Note"), "Case-sensitive search should match identical case.");
+        Assert(!caseMatcher.IsMatch("note"), "Case-sensitive search should reject different case.");
+
+        var regexMatcher = new NoteSearchMatcher(@"^todo-\d+$", true, false, false);
+        Assert(regexMatcher.IsMatch("TODO-42"), "Regex search should honor IgnoreCase when case matching is off.");
+        Assert(!regexMatcher.IsMatch("todo-abc"), "Regex search should enforce the supplied pattern.");
+
+        var invalidRegexMatcher = new NoteSearchMatcher("[", true, false, false);
+        Assert(!string.IsNullOrEmpty(invalidRegexMatcher.Error), "Invalid regular expressions should report an error.");
+        Assert(!invalidRegexMatcher.IsMatch("anything"), "Invalid regular expressions must not match or throw.");
+
+        Assert(LineCutSelector.GetRange("one\r\ntwo\r\nthree", 1) == (0, 5), "Cutting the first line should include its CRLF delimiter.");
+        Assert(LineCutSelector.GetRange("one\r\ntwo\r\nthree", 6) == (5, 10), "Cutting a middle line should include its CRLF delimiter.");
+        Assert(LineCutSelector.GetRange("one\r\ntwo", 6) == (5, 8), "Cutting the final line should select through the document end.");
+        Assert(LineCutSelector.GetRange("one\r\n", 5) == (3, 5), "Cutting a final empty line should remove the preceding CRLF.");
+
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        var legacyConfig = JsonSerializer.Deserialize<AppConfig>("{\"showLineFeed\":true}", options);
+        Assert(legacyConfig?.ShowEndOfLine == true, "Legacy line-feed configuration should migrate to showEndOfLine.");
+
+        var serializedConfig = JsonSerializer.Serialize(new AppConfig { ShowEndOfLine = true }, options);
+        Assert(serializedConfig.Contains("\"showEndOfLine\":true", StringComparison.Ordinal), "New configuration should serialize showEndOfLine.");
+        Assert(!serializedConfig.Contains("showLineFeed", StringComparison.Ordinal), "New configuration should not serialize legacy line-feed settings.");
+
+        Assert(DocumentStatisticsCalculator.Calculate("") == new DocumentStatistics(0, 0), "Empty content should have zero lines and characters.");
+        var mixedLineEndings = DocumentStatisticsCalculator.Calculate("abc\r\n你好 \t!\rb\n");
+        Assert(mixedLineEndings.LineCount == 4, "CRLF, CR, and LF should each count as one logical line break.");
+        Assert(mixedLineEndings.CharacterCount == 7, "Character count should exclude whitespace and include Chinese characters and punctuation.");
+    }
+
+    private static void RunWindowInteractionTests()
+    {
+        var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        try
+        {
+            RunWindowInteractionTest(hideTitleBar: false);
+            RunWindowInteractionTest(hideTitleBar: true);
+        }
+        finally
+        {
+            app.Shutdown();
+        }
+    }
+
+    private static void RunWindowInteractionTest(bool hideTitleBar)
+    {
+        WriteTestConfiguration(hideTitleBar);
+        var window = new MainWindow();
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+
+            var menuBar = FindNamed<Border>(window, "MenuBarBackground");
+            var appMenu = FindNamed<Menu>(window, "AppMenu");
+            var noteList = FindNamed<ListBox>(window, "NoteList");
+            Assert(menuBar.ActualWidth > appMenu.ActualWidth, "The menu bar must have a blank area outside the File menu.");
+
+            var blankMenuPoint = menuBar.TranslatePoint(new Point(menuBar.ActualWidth - 4, menuBar.ActualHeight / 2), window);
+            var menuBlankHit = window.InputHitTest(blankMenuPoint) as DependencyObject;
+            Assert(!HasAncestor<MenuItem>(menuBlankHit), "Clicking the right blank menu-bar area must not target the File menu item.");
+            Assert(MainWindow.CanDragFromMenuBar(menuBlankHit), "The menu-bar blank area must be draggable in both title-bar modes.");
+
+            var blankListPoint = noteList.TranslatePoint(new Point(noteList.ActualWidth / 2, noteList.ActualHeight - 4), window);
+            var listBlankHit = window.InputHitTest(blankListPoint) as DependencyObject;
+            Assert(MainWindow.CanDragFrom(listBlankHit), $"The note-list blank area must be draggable in both title-bar modes. Hit: {DescribeAncestors(listBlankHit)}");
+
+            Assert(!MainWindow.CanOpenNoteContextMenu(null), "Right-clicking blank list space must not open the note context menu.");
+        }
+        finally
+        {
+            InvokePrivate(window, "ExitApp");
+        }
+    }
+
+    private static void WriteTestConfiguration(bool hideTitleBar)
+    {
+        var config = new AppConfig
+        {
+            AllowMultiInstance = true,
+            ConfirmDelete = false,
+            HideTitleBar = hideTitleBar,
+            NotesDir = Path.Combine(Path.GetTempPath(), "FlashStickNote-WpfTests"),
+        };
+        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "conf.json"), JsonSerializer.Serialize(config, options));
+        File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "shortcut.json"), "{\"toggleWindow\":\"Ctrl+Shift+F24\",\"newNote\":\"Ctrl+Shift+F23\",\"hideWindow\":\"Ctrl+Shift+F22\",\"fontZoom\":\"Ctrl+Wheel\",\"toggleWordWrap\":\"Alt+Z\"}");
+    }
+
+    private static T FindNamed<T>(FrameworkElement root, string name) where T : FrameworkElement
+        => root.FindName(name) as T ?? throw new InvalidOperationException($"Missing named element: {name}");
+
+    private static bool HasAncestor<T>(DependencyObject? node) where T : DependencyObject
+    {
+        while (node != null)
+        {
+            if (node is T)
+            {
+                return true;
+            }
+
+            node = node is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(node) : null;
+        }
+
+        return false;
+    }
+
+    private static string DescribeAncestors(DependencyObject? node)
+    {
+        var names = new List<string>();
+        while (node != null)
+        {
+            names.Add(node.GetType().Name);
+            node = node is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(node) : null;
+        }
+
+        return string.Join(" > ", names);
+    }
+
+    private static void InvokePrivate(object target, string name, params object[] arguments)
+    {
+        var method = target.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException($"Missing private method: {name}");
+        method.Invoke(target, arguments);
+    }
+
+    private static void Assert(bool condition, string message)
+    {
+        if (!condition)
+        {
+            throw new InvalidOperationException(message);
+        }
     }
 }
-
-var defaultMatcher = new NoteSearchMatcher("note", useRegex: false, wholeWord: false, matchCase: false);
-Assert(defaultMatcher.IsMatch("My NOTEbook"), "Default search should ignore case and match substrings.");
-
-var wholeWordMatcher = new NoteSearchMatcher("note", useRegex: false, wholeWord: true, matchCase: false);
-Assert(wholeWordMatcher.IsMatch("A note."), "Whole-word search should match a complete word.");
-Assert(!wholeWordMatcher.IsMatch("notebook"), "Whole-word search should not match a longer word.");
-
-var caseMatcher = new NoteSearchMatcher("Note", useRegex: false, wholeWord: false, matchCase: true);
-Assert(caseMatcher.IsMatch("Note"), "Case-sensitive search should match identical case.");
-Assert(!caseMatcher.IsMatch("note"), "Case-sensitive search should reject different case.");
-
-var regexMatcher = new NoteSearchMatcher(@"^todo-\d+$", useRegex: true, wholeWord: false, matchCase: false);
-Assert(regexMatcher.IsMatch("TODO-42"), "Regex search should honor IgnoreCase when case matching is off.");
-Assert(!regexMatcher.IsMatch("todo-abc"), "Regex search should enforce the supplied pattern.");
-
-var invalidRegexMatcher = new NoteSearchMatcher("[", useRegex: true, wholeWord: false, matchCase: false);
-Assert(!string.IsNullOrEmpty(invalidRegexMatcher.Error), "Invalid regular expressions should report an error.");
-Assert(!invalidRegexMatcher.IsMatch("anything"), "Invalid regular expressions must not match or throw.");
-
-var firstLine = LineCutSelector.GetRange("one\r\ntwo\r\nthree", 1);
-Assert(firstLine == (0, 5), "Cutting the first line should include its CRLF delimiter.");
-
-var middleLine = LineCutSelector.GetRange("one\r\ntwo\r\nthree", 6);
-Assert(middleLine == (5, 10), "Cutting a middle line should include its CRLF delimiter.");
-
-var finalLine = LineCutSelector.GetRange("one\r\ntwo", 6);
-Assert(finalLine == (5, 8), "Cutting the final line should select through the document end.");
-
-var finalEmptyLine = LineCutSelector.GetRange("one\r\n", 5);
-Assert(finalEmptyLine == (3, 5), "Cutting a final empty line should remove the preceding CRLF.");
-
-var options = new JsonSerializerOptions
-{
-    PropertyNameCaseInsensitive = true,
-    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-};
-var legacyConfig = JsonSerializer.Deserialize<AppConfig>("{\"showLineFeed\":true}", options);
-Assert(legacyConfig?.ShowEndOfLine == true, "Legacy line-feed configuration should migrate to showEndOfLine.");
-
-var serializedConfig = JsonSerializer.Serialize(new AppConfig { ShowEndOfLine = true }, options);
-Assert(serializedConfig.Contains("\"showEndOfLine\":true", StringComparison.Ordinal), "New configuration should serialize showEndOfLine.");
-Assert(!serializedConfig.Contains("showLineFeed", StringComparison.Ordinal), "New configuration should not serialize legacy line-feed settings.");
-
-var emptyStatistics = DocumentStatisticsCalculator.Calculate("");
-Assert(emptyStatistics == new DocumentStatistics(0, 0), "Empty content should have zero lines and characters.");
-
-var mixedLineEndingsStatistics = DocumentStatisticsCalculator.Calculate("abc\r\n你好 \t!\rb\n");
-Assert(mixedLineEndingsStatistics.LineCount == 4, "CRLF, CR, and LF should each count as one logical line break.");
-Assert(mixedLineEndingsStatistics.CharacterCount == 7, "Character count should exclude whitespace and include Chinese characters and punctuation.");
-
-Console.WriteLine("All FlashStickNote logic tests passed.");

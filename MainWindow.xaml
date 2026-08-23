@@ -49,9 +49,12 @@
             <ColumnDefinition Width="*" MinWidth="300"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Row="0" Grid.ColumnSpan="3"
-                Background="{DynamicResource Theme.ListHeaderBackground}">
-            <Menu HorizontalAlignment="Left"
+        <Border x:Name="MenuBarBackground"
+                Grid.Row="0" Grid.ColumnSpan="3"
+                Background="{DynamicResource Theme.ListHeaderBackground}"
+                PreviewMouseLeftButtonDown="MenuBarBackground_PreviewMouseLeftButtonDown">
+            <Menu x:Name="AppMenu"
+                  HorizontalAlignment="Left"
                   Width="48"
                   Background="Transparent"
                   Foreground="{DynamicResource Theme.ListHeaderForeground}">
@@ -122,6 +125,7 @@
                      SelectedItem="{Binding SelectedNote, Mode=OneWay}"
                      SelectionChanged="NoteList_SelectionChanged"
                      PreviewMouseRightButtonDown="NoteList_PreviewMouseRightButtonDown"
+                     ContextMenuOpening="NoteList_ContextMenuOpening"
                      KeyDown="NoteList_KeyDown"
                      BorderThickness="0"
                      Background="{DynamicResource Theme.ListBackground}"

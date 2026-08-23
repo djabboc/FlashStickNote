@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private System.Drawing.Icon? _trayIcon;
     private string? _iconPath;
     private bool _isExiting;
+    private System.Windows.Controls.ListBoxItem? _rightClickedNoteItem;
 
     public MainWindow()
     {
@@ -29,10 +30,10 @@ public partial class MainWindow : Window
         Logger.Log($"程序启动，exe 目录: {ConfigService.BaseDir}");
         Logger.Log($"conf.json: notesDir={conf.NotesDir}, notesFormat={conf.NotesFormat}, fontFamily={conf.FontFamily}");
 
+        PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
         if (conf.HideTitleBar)
         {
             WindowStyle = WindowStyle.None;
-            PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
             Logger.Log("标题栏已隐藏（按住背景空白处可拖动窗口）");
         }
 
@@ -448,13 +449,32 @@ public partial class MainWindow : Window
 
     private void OnPreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (WindowStyle != WindowStyle.None ||
-            e.ChangedButton != System.Windows.Input.MouseButton.Left ||
-            IsInteractiveSource(e.OriginalSource as DependencyObject))
+        if (e.ChangedButton != System.Windows.Input.MouseButton.Left ||
+            !CanDragFrom(e.OriginalSource as DependencyObject))
         {
             return;
         }
 
+        TryDragWindow();
+    }
+
+    private void MenuBarBackground_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != System.Windows.Input.MouseButton.Left ||
+            !CanDragFromMenuBar(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        TryDragWindow();
+    }
+
+    internal static bool CanDragFromMenuBar(DependencyObject? source)
+        => !HasAncestor<System.Windows.Controls.MenuItem>(source);
+
+    private void TryDragWindow()
+    {
         try
         {
             DragMove();
@@ -464,7 +484,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private static bool IsInteractiveSource(DependencyObject? node)
+    internal static bool CanDragFrom(DependencyObject? node)
     {
         while (node != null)
         {
@@ -477,14 +497,38 @@ public partial class MainWindow : Window
                 System.Windows.Controls.GridSplitter or
                 Controls.NoteTextEditor)
             {
+                return false;
+            }
+
+            node = GetParent(node);
+        }
+
+        return true;
+    }
+
+    private static bool HasAncestor<T>(DependencyObject? node) where T : DependencyObject
+    {
+        while (node != null)
+        {
+            if (node is T)
+            {
                 return true;
             }
 
-            node = System.Windows.Media.VisualTreeHelper.GetParent(node);
+            node = GetParent(node);
         }
 
         return false;
     }
+
+    private static DependencyObject? GetParent(DependencyObject node)
+        => node switch
+        {
+            System.Windows.Media.Visual or System.Windows.Media.Media3D.Visual3D =>
+                System.Windows.Media.VisualTreeHelper.GetParent(node),
+            System.Windows.FrameworkContentElement content => content.Parent,
+            _ => null,
+        };
 
     private void ApplyWindowShortcuts()
     {
@@ -556,17 +600,38 @@ public partial class MainWindow : Window
 
     private void NoteList_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        var current = e.OriginalSource as DependencyObject;
-        while (current != null && current is not System.Windows.Controls.ListBoxItem)
+        _rightClickedNoteItem = FindAncestor<System.Windows.Controls.ListBoxItem>(e.OriginalSource as DependencyObject);
+        if (_rightClickedNoteItem != null)
         {
-            current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+            _rightClickedNoteItem.IsSelected = true;
+            _rightClickedNoteItem.Focus();
+        }
+    }
+
+    private void NoteList_ContextMenuOpening(object sender, System.Windows.Controls.ContextMenuEventArgs e)
+    {
+        if (!CanOpenNoteContextMenu(_rightClickedNoteItem))
+        {
+            e.Handled = true;
+        }
+    }
+
+    internal static bool CanOpenNoteContextMenu(System.Windows.Controls.ListBoxItem? item)
+        => item != null;
+
+    private static T? FindAncestor<T>(DependencyObject? node) where T : DependencyObject
+    {
+        while (node != null)
+        {
+            if (node is T found)
+            {
+                return found;
+            }
+
+            node = GetParent(node);
         }
 
-        if (current is System.Windows.Controls.ListBoxItem item)
-        {
-            item.IsSelected = true;
-            item.Focus();
-        }
+        return null;
     }
 
     private void DeleteContextMenuItem_Click(object sender, RoutedEventArgs e) => DeleteSelectedWithConfirm();
