@@ -90,6 +90,10 @@
 - `conf.json` 新增 `showSpaces`、`showLineFeed`、`showCarriageReturn`，默认均为关闭
 - 使用 AvalonEdit 原生空格和行尾标记；Windows 的 CRLF 以一个行尾标记显示
 
+### 阶段 22：末行剪切
+- 无选区按 `Ctrl+X` 时，先选中当前完整逻辑行再执行 AvalonEdit 的标准剪切命令
+- 最后一行及文档末尾的空行均可剪切
+
 ## 历史分支
 
 - `master`：阶段 1-15 的 TextBox 编辑区版本（自绘行号），保留作为回退点
