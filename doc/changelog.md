@@ -109,6 +109,9 @@
 - `silentStart` 使用 `WindowInteropHelper.EnsureHandle()` 创建窗口句柄并完成热键初始化
 - 不再通过透明 `Show()`/`Hide()` 初始化，避免启动时窗口或任务栏短暂出现
 
+### 阶段 27：制表符显示配置
+- `conf.json` 新增 `showTabs`，默认关闭；开启后编辑区以 AvalonEdit 标记显示制表符
+
 ## 历史分支
 
 - `master`：阶段 1-15 的 TextBox 编辑区版本（自绘行号），保留作为回退点

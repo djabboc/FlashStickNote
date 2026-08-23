@@ -30,6 +30,7 @@
   "hideEditorScrollbar": false,          // 隐藏右侧编辑区的垂直滚动条（隐藏后仍可用滚轮滚动）
   "hideTitleBar": false,                 // 隐藏系统标题栏（无边框窗口，按住背景空白处拖动窗口，边缘可调整大小）
   "showSpaces": false,                   // 编辑区显示空格标记
+  "showTabs": false,                     // 编辑区显示制表符标记
   "showLineFeed": false,                 // 编辑区显示换行符标记
   "showCarriageReturn": false,           // 编辑区显示回车符标记
 

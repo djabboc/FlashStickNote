@@ -192,6 +192,7 @@ public partial class MainWindow : Window
         ContentBox.WordWrap = conf.WordWrap;
         ContentBox.ShowLineNumbers = conf.ShowLineNumbers;
         ContentBox.TextArea.Options.ShowSpaces = conf.ShowSpaces;
+        ContentBox.TextArea.Options.ShowTabs = conf.ShowTabs;
         ContentBox.TextArea.Options.ShowEndOfLine = conf.ShowLineFeed || conf.ShowCarriageReturn;
         ContentBox.HorizontalScrollBarVisibility = conf.WordWrap
             ? System.Windows.Controls.ScrollBarVisibility.Disabled
