@@ -40,4 +40,4 @@ Assert(finalLine == (5, 8), "Cutting the final line should select through the do
 var finalEmptyLine = LineCutSelector.GetRange("one\r\n", 5);
 Assert(finalEmptyLine == (3, 5), "Cutting a final empty line should remove the preceding CRLF.");
 
-Console.WriteLine("All NoteSearchMatcher tests passed.");
+Console.WriteLine("All FlashStickNote logic tests passed.");
