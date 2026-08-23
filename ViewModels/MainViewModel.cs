@@ -61,7 +61,6 @@ public class MainViewModel : INotifyPropertyChanged
             if (_selectedNote != null)
             {
                 _selectedNote.PropertyChanged -= OnNotePropertyChanged;
-                RemoveIfEmpty(_selectedNote);
             }
 
             _selectedNote = value;
@@ -469,17 +468,6 @@ public class MainViewModel : INotifyPropertyChanged
         {
             SelectedNote = Notes[Math.Min(Math.Max(index, 0), Notes.Count - 1)];
         }
-    }
-
-    private void RemoveIfEmpty(Note note)
-    {
-        if (!note.IsEmpty)
-        {
-            return;
-        }
-
-        Notes.Remove(note);
-        _storage.Delete(note);
     }
 
     private void OnNotePropertyChanged(object? sender, PropertyChangedEventArgs e)

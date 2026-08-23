@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using FlashStickNote;
 using FlashStickNote.Controls;
+using FlashStickNote.Models;
 using FlashStickNote.Services;
 using FlashStickNote.ViewModels;
 
@@ -127,6 +128,22 @@ internal static class Program
             });
             Assert(viewModel.Notes.Count == noteCount && viewModel.Notes.Contains(emptyDraft), "Right-clicking blank list space must not remove an empty draft.");
             Assert(ReferenceEquals(viewModel.SelectedNote, emptyDraft), "Right-clicking blank list space must preserve the selected empty draft.");
+
+            var otherNote = new Note { Title = "Context target" };
+            viewModel.Notes.Add(otherNote);
+            window.UpdateLayout();
+            var otherItem = (ListBoxItem?)noteList.ItemContainerGenerator.ContainerFromItem(otherNote)
+                ?? throw new InvalidOperationException("The context-menu target must have a list item.");
+            var rightClick = new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Right)
+            {
+                RoutedEvent = UIElement.PreviewMouseRightButtonDownEvent,
+                Source = otherItem,
+            };
+            InvokePrivate(window, "NoteList_PreviewMouseRightButtonDown", noteList, rightClick);
+            Assert(otherItem.IsSelected, "Right-clicking a note must select the context-menu target.");
+            viewModel.SelectedNote = otherNote;
+            Assert(viewModel.Notes.Contains(emptyDraft), "Right-clicking another note must not remove an empty draft.");
+            Assert(ReferenceEquals(viewModel.SelectedNote, otherNote), "Selecting a context-menu target must keep that target selected.");
         }
         finally
         {
