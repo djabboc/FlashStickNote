@@ -46,6 +46,7 @@ public class AppConfig
     public string CaretStyle { get; set; } = "line";
     public double CaretWidth { get; set; } = 2.0;
     public string CaretColor { get; set; } = "";
+    public double CaretOpacity { get; set; } = 0.8;
     public int CaretBlinkInterval { get; set; } = 530;
     public string Icon { get; set; } = "";
     public bool StartWithWindows { get; set; } = false;

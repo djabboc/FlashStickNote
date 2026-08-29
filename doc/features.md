@@ -38,7 +38,7 @@
 - 超链接识别：仅 http/https，蓝字+下划线（`linkColor` 可配），**Ctrl+单击**在默认浏览器打开
 - 字体/颜色：标题、内容、行号、链接均可在 conf.json 配置（留空 = 跟随全局/主题）
 - 字体回退：`fontFamily` 配合有序 `fontFallbackFamilies`，默认 Lucida Fax → Microsoft JhengHei → Arial → Microsoft YaHei
-- 插入光标：`caretStyle`（line/block/underline）、`caretWidth`（1-12）、`caretColor` 和 `caretBlinkInterval`（毫秒，0 为常亮）可配置
+- 插入光标：`caretStyle`（line/block/underline）、`caretWidth`（1-12）、`caretColor`、`caretOpacity`（0-1，默认 0.8）和 `caretBlinkInterval`（毫秒，0 为常亮）可配置
 
 ## 左侧列表
 

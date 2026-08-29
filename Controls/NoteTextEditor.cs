@@ -32,7 +32,7 @@ public sealed class NoteTextEditor : TextEditor
         LostKeyboardFocus += (_, _) => StopCaretBlink();
     }
 
-    public void ConfigureCaret(string? style, double width, System.Windows.Media.Brush brush, int blinkInterval)
+    public void ConfigureCaret(string? style, double width, System.Windows.Media.Brush brush, double opacity, int blinkInterval)
     {
         _caretRenderer.Style = style?.Trim().ToLowerInvariant() switch
         {
@@ -41,13 +41,18 @@ public sealed class NoteTextEditor : TextEditor
             _ => CaretStyle.Line,
         };
         _caretRenderer.Width = Math.Clamp(width, 1.0, 12.0);
-        _caretRenderer.Brush = brush;
+        var caretBrush = brush.CloneCurrentValue();
+        caretBrush.Opacity = NormalizeCaretOpacity(opacity);
+        _caretRenderer.Brush = caretBrush;
         TextArea.Caret.CaretBrush = System.Windows.Media.Brushes.Transparent;
         ConfigureCaretBlink(blinkInterval);
     }
 
     public static int NormalizeCaretBlinkInterval(int interval)
         => interval <= 0 ? 0 : Math.Clamp(interval, 100, 2000);
+
+    public static double NormalizeCaretOpacity(double opacity)
+        => !double.IsFinite(opacity) ? 0.8 : Math.Clamp(opacity, 0.0, 1.0);
 
     private void ConfigureCaretBlink(int interval)
     {

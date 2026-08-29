@@ -74,6 +74,11 @@ internal static class Program
             "Font fallback families should serialize as an ordered configuration array.");
         var defaultCaretConfig = new AppConfig();
         Assert(defaultCaretConfig.CaretBlinkInterval == 530, "The default caret blink interval should be 530ms.");
+        Assert(Math.Abs(defaultCaretConfig.CaretOpacity - 0.8) < 0.0001, "The default caret opacity should be 80%.");
+        Assert(Math.Abs(NoteTextEditor.NormalizeCaretOpacity(0.35) - 0.35) < 0.0001, "Valid caret opacity should be preserved.");
+        Assert(NoteTextEditor.NormalizeCaretOpacity(-0.2) == 0, "Caret opacity should not become negative.");
+        Assert(NoteTextEditor.NormalizeCaretOpacity(1.2) == 1, "Caret opacity should not exceed 100%.");
+        Assert(Math.Abs(NoteTextEditor.NormalizeCaretOpacity(double.NaN) - 0.8) < 0.0001, "Invalid caret opacity should use the default.");
         Assert(NoteTextEditor.NormalizeCaretBlinkInterval(0) == 0, "A zero caret blink interval should keep the caret visible.");
         Assert(NoteTextEditor.NormalizeCaretBlinkInterval(40) == 100, "Positive caret blink intervals should have a usable lower bound.");
         Assert(NoteTextEditor.NormalizeCaretBlinkInterval(2400) == 2000, "Caret blink intervals should have an upper bound.");
@@ -234,9 +239,10 @@ internal static class Program
             Assert(viewModel.Notes.Contains(emptyDraft), "Right-clicking another note must not remove an empty draft.");
             Assert(ReferenceEquals(viewModel.SelectedNote, otherNote), "Selecting a context-menu target must keep that target selected.");
 
-            editor.ConfigureCaret("line", 2, Brushes.Black, 100);
+            editor.ConfigureCaret("line", 2, Brushes.Black, 0.35, 100);
             editor.Focus();
             Assert(editor.TextArea.IsKeyboardFocused, "The caret blink test requires editor keyboard focus.");
+            Assert(Math.Abs(GetCustomCaretOpacity(editor) - 0.35) < 0.0001, "Configured caret opacity should be applied to the custom brush.");
             PumpDispatcher(TimeSpan.FromMilliseconds(170));
             Assert(!GetCustomCaretVisibility(editor), "A focused caret with a 100ms interval should become hidden after one timer tick.");
 
@@ -244,7 +250,7 @@ internal static class Program
             editor.TextArea.Caret.Offset = editor.Document.TextLength;
             Assert(GetCustomCaretVisibility(editor), "Moving the caret should make it visible immediately.");
 
-            editor.ConfigureCaret("line", 2, Brushes.Black, 0);
+            editor.ConfigureCaret("line", 2, Brushes.Black, 0.35, 0);
             PumpDispatcher(TimeSpan.FromMilliseconds(170));
             Assert(GetCustomCaretVisibility(editor), "A zero caret blink interval should keep the focused caret visible.");
         }
@@ -337,6 +343,14 @@ internal static class Program
         return (bool)isVisible;
     }
 
+    private static double GetCustomCaretOpacity(NoteTextEditor editor)
+    {
+        var renderer = typeof(NoteTextEditor).GetField("_caretRenderer", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(editor)
+            ?? throw new InvalidOperationException("The editor must keep its custom caret renderer.");
+        var brush = renderer.GetType().GetProperty("Brush", BindingFlags.Instance | BindingFlags.Public)?.GetValue(renderer) as Brush
+            ?? throw new InvalidOperationException("The custom caret renderer must expose its brush.");
+        return brush.Opacity;
+    }
 
     private static T FindNamed<T>(FrameworkElement root, string name) where T : FrameworkElement
         => root.FindName(name) as T ?? throw new InvalidOperationException($"Missing named element: {name}");

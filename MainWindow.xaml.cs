@@ -247,7 +247,7 @@ public partial class MainWindow : Window
         }
 
         ContentBox.ConfigureCaret(conf.CaretStyle, conf.CaretWidth,
-            ParseBrush(conf.CaretColor) ?? contentBrush ?? editorForeground, conf.CaretBlinkInterval);
+            ParseBrush(conf.CaretColor) ?? contentBrush ?? editorForeground, conf.CaretOpacity, conf.CaretBlinkInterval);
     }
 
     private void ApplyWindowBounds(AppConfig conf)

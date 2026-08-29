@@ -34,6 +34,7 @@
   "caretStyle": "line",
   "caretWidth": 2.0,
   "caretColor": "",
+  "caretOpacity": 0.8,
   "caretBlinkInterval": 530,
   "icon": "",
   "startWithWindows": false,

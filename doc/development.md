@@ -132,7 +132,7 @@ csproj `ApplicationIcon`（exe 内嵌）+ `EmbeddedResource LogicalName`（运�
 
 - 监控到删除事件时先经过 450ms 防抖和二次存在性检查；原子替换或云同步的短暂 delete/create 事件不能移除当前笔记或切换选择。
 - 每条笔记拥有独立的 AvalonEdit `TextDocument`。切换笔记时复用文档，不再通过重设 `Text` 清空撤销栈，因此切换回来后 Ctrl+Z/Ctrl+Y 仍作用于原笔记。
-- 插入光标由 `NoteTextEditor` 在 AvalonEdit 的 `KnownLayer.Caret` 自绘。原生光标画刷设为透明；`caretStyle` 支持 `line`、`block`、`underline`，`caretWidth` 限制 1-12，`caretColor` 为空时回退到正文或主题色。自绘层由 DispatcherTimer 驱动闪烁：`caretBlinkInterval=0` 常亮，其他值限制为 100-2000ms，移动或重新聚焦时立即显示后重新计时。
+- 插入光标由 `NoteTextEditor` 在 AvalonEdit 的 `KnownLayer.Caret` 自绘。原生光标画刷设为透明；`caretStyle` 支持 `line`、`block`、`underline`，`caretWidth` 限制 1-12，`caretColor` 为空时回退到正文或主题色，`caretOpacity` 默认 0.8 并限制为 0-1。应用不透明度时克隆画刷，避免修改主题或正文共用的画刷。自绘层由 DispatcherTimer 驱动闪烁：`caretBlinkInterval=0` 常亮，其他值限制为 100-2000ms，移动或重新聚焦时立即显示后重新计时。
 
 ### 字体与窗口配置
 
