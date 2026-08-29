@@ -26,6 +26,7 @@ public partial class MainWindow : Window
 
         var conf = ConfigService.LoadConfig();
         _appConfig = conf;
+        ApplyWindowBounds(conf);
         Logger.Init(ConfigService.BaseDir);
         Logger.Log($"程序启动，exe 目录: {ConfigService.BaseDir}");
         Logger.Log($"conf.json: notesDir={conf.NotesDir}, notesFormat={conf.NotesFormat}, fontFamily={conf.FontFamily}");
@@ -242,6 +243,51 @@ public partial class MainWindow : Window
 
         ContentBox.ConfigureCaret(conf.CaretStyle, conf.CaretWidth,
             ParseBrush(conf.CaretColor) ?? contentBrush ?? editorForeground);
+    }
+
+    private void ApplyWindowBounds(AppConfig conf)
+    {
+        Width = NormalizeWindowDimension(conf.WindowWidth, MinWidth);
+        Height = NormalizeWindowDimension(conf.WindowHeight, MinHeight);
+
+        if (conf.WindowLeft is { } left && conf.WindowTop is { } top &&
+            double.IsFinite(left) && double.IsFinite(top))
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = left;
+            Top = top;
+        }
+        else
+        {
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        }
+    }
+
+    private static double NormalizeWindowDimension(double value, double minimum)
+        => double.IsFinite(value) && value >= minimum ? value : minimum;
+
+    private void SaveWindowBounds()
+    {
+        if (!_appConfig.RememberWindowBounds)
+        {
+            return;
+        }
+
+        var bounds = WindowState == WindowState.Normal
+            ? new Rect(Left, Top, Width, Height)
+            : RestoreBounds;
+        if (!double.IsFinite(bounds.Left) || !double.IsFinite(bounds.Top) ||
+            !double.IsFinite(bounds.Width) || !double.IsFinite(bounds.Height))
+        {
+            return;
+        }
+
+        _appConfig.WindowWidth = NormalizeWindowDimension(bounds.Width, MinWidth);
+        _appConfig.WindowHeight = NormalizeWindowDimension(bounds.Height, MinHeight);
+        _appConfig.WindowLeft = bounds.Left;
+        _appConfig.WindowTop = bounds.Top;
+        ConfigService.SaveConfig(_appConfig);
+        Logger.Log($"已保存窗口位置与大小: {_appConfig.WindowLeft},{_appConfig.WindowTop} {_appConfig.WindowWidth}x{_appConfig.WindowHeight}");
     }
 
     private static System.Windows.Media.FontFamily CreateFontFamily(string? primaryFamily, IEnumerable<string>? fallbackFamilies)
@@ -921,6 +967,7 @@ public partial class MainWindow : Window
             vm.Dispose();
         }
 
+        SaveWindowBounds();
         foreach (var hotkey in _hotkeys.Values)
         {
             hotkey.Dispose();

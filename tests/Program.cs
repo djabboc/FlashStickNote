@@ -127,6 +127,7 @@ internal static class Program
         {
             RunWindowInteractionTest(hideTitleBar: false);
             RunWindowInteractionTest(hideTitleBar: true);
+            RunWindowBoundsPersistenceTest();
         }
         finally
         {
@@ -142,6 +143,12 @@ internal static class Program
         {
             window.Show();
             window.UpdateLayout();
+            Assert(window.WindowStartupLocation == WindowStartupLocation.Manual,
+                "Configured window coordinates should use manual startup positioning.");
+            Assert(Math.Abs(window.Width - 940) < 0.1 && Math.Abs(window.Height - 640) < 0.1,
+                "Configured window dimensions should be applied as absolute values.");
+            Assert(Math.Abs(window.Left - 96) < 0.1 && Math.Abs(window.Top - 84) < 0.1,
+                "Configured window coordinates should be applied as absolute values.");
 
             var menuBar = FindNamed<Border>(window, "MenuBarBackground");
             var fileMenuButton = FindNamed<Button>(window, "FileMenuButton");
@@ -216,13 +223,45 @@ internal static class Program
         }
     }
 
-    private static void WriteTestConfiguration(bool hideTitleBar)
+    private static void RunWindowBoundsPersistenceTest()
+    {
+        WriteTestConfiguration(hideTitleBar: false, rememberWindowBounds: true);
+        var window = new MainWindow();
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+            window.Width = 980;
+            window.Height = 700;
+            window.Left = 180;
+            window.Top = 160;
+            window.UpdateLayout();
+        }
+        finally
+        {
+            InvokePrivate(window, "ExitApp");
+        }
+
+        var persistedConfig = ConfigService.LoadConfig();
+        Assert(Math.Abs(persistedConfig.WindowWidth - 980) < 0.1 && Math.Abs(persistedConfig.WindowHeight - 700) < 0.1,
+            "Remembered window dimensions should be saved on normal exit.");
+        Assert(persistedConfig.WindowLeft is { } left && persistedConfig.WindowTop is { } top &&
+            Math.Abs(left - 180) < 0.1 && Math.Abs(top - 160) < 0.1,
+            "Remembered window coordinates should be saved on normal exit.");
+    }
+
+    private static void WriteTestConfiguration(bool hideTitleBar, bool rememberWindowBounds = false)
     {
         var config = new AppConfig
         {
             AllowMultiInstance = true,
             ConfirmDelete = false,
             HideTitleBar = hideTitleBar,
+            WindowWidth = 940,
+            WindowHeight = 640,
+            WindowLeft = 96,
+            WindowTop = 84,
+            RememberWindowBounds = rememberWindowBounds,
             NotesDir = Path.Combine(Path.GetTempPath(), "FlashStickNote-WpfTests"),
         };
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
