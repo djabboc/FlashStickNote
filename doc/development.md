@@ -41,7 +41,7 @@ MainWindow 构造
 - txt/md rename saves write a temporary file in the notes directory before replacing the target. The old file is deleted only after the new content is durable; a failed save retains the old file and `StoredFileName`.
 - A note leaves the list only after a successful move to the recycle directory. Failed moves preserve the selection and show a warning.
 - Watcher-triggered reads run off the UI thread. Watcher errors recreate the watcher and reconcile the directory; window shutdown disposes watchers and timers.
-- Self-save deletions are ignored by the watcher after its deferred UI dispatch. Atomic replacement must never be interpreted as an external note deletion.
+- A delete event is confirmed only after a 450ms debounce and a second file-existence check. Atomic replacement and sync-directory delete/create bursts must never be interpreted as an external note deletion.
 - Each note owns an AvalonEdit `TextDocument`; switching notes reuses that document so its undo and redo history remains available when returning to the note.
 - `Directory.Build.props` clears inherited NuGet fallback folders so builds do not depend on a local Visual Studio installation path.
 

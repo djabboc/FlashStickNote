@@ -314,13 +314,18 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        RunOnDispatcher(() =>
+        RunOnDispatcher(() => ScheduleDeleted(e.FullPath));
+    }
+
+    private async void ScheduleDeleted(string path)
+    {
+        await Task.Delay(450);
+        if (_isDisposed || File.Exists(path) || _storage.WasRecentlyWritten(path))
         {
-            if (!_storage.WasRecentlyWritten(e.FullPath))
-            {
-                HandleDeleted(e.FullPath);
-            }
-        });
+            return;
+        }
+
+        HandleDeleted(path);
     }
 
     private void OnWatcherRenamed(object sender, RenamedEventArgs e)
