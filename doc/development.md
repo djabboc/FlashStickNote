@@ -36,6 +36,13 @@ MainWindow 构造
 - 搜索：`ICollectionView.Filter`（标题/内容包含匹配，OrdinalIgnoreCase）；
   列表 SelectedItem 改 OneWay 绑定 + SelectionChanged 事件，过滤时编辑区保持原笔记。
 
+### Reliability Constraints
+
+- txt/md rename saves write a temporary file in the notes directory before replacing the target. The old file is deleted only after the new content is durable; a failed save retains the old file and `StoredFileName`.
+- A note leaves the list only after a successful move to the recycle directory. Failed moves preserve the selection and show a warning.
+- Watcher-triggered reads run off the UI thread. Watcher errors recreate the watcher and reconcile the directory; window shutdown disposes watchers and timers.
+- `Directory.Build.props` clears inherited NuGet fallback folders so builds do not depend on a local Visual Studio installation path.
+
 ### 快捷键分层（作用域原则）
 
 - **窗口相关 → 全局**（RegisterHotKey）：`toggleWindow`——窗口隐藏时也能唤出
