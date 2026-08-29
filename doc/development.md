@@ -124,3 +124,22 @@ csproj `ApplicationIcon`（exe 内嵌）+ `EmbeddedResource LogicalName`（运�
 
 - `log.txt`（exe 目录）：启动流程、配置读取、监控事件、异常兜底、快捷键/图标/自启状态
 - 排查用户问题优先看 log.txt；Logger 线程安全（lock + AppendAllText）
+
+## 当前实现补充（2026-08-29）
+
+### 编辑器状态与外部同步
+
+- 监控到删除事件时先经过 450ms 防抖和二次存在性检查；原子替换或云同步的短暂 delete/create 事件不能移除当前笔记或切换选择。
+- 每条笔记拥有独立的 AvalonEdit `TextDocument`。切换笔记时复用文档，不再通过重设 `Text` 清空撤销栈，因此切换回来后 Ctrl+Z/Ctrl+Y 仍作用于原笔记。
+- 插入光标由 `NoteTextEditor` 在 AvalonEdit 的 `KnownLayer.Caret` 自绘。原生光标画刷设为透明；`caretStyle` 支持 `line`、`block`、`underline`，`caretWidth` 限制 1-12，`caretColor` 为空时回退到正文或主题色。
+
+### 字体与窗口配置
+
+- `fontFamily` 是首选字体，`fontFallbackFamilies` 是有序回退数组。`MainWindow` 将首选和回退项合成为 WPF `FontFamily`，并用于标题、正文和列表的单独字体配置；逗号分隔的旧字体配置仍可读取。
+- 窗口矩形由 `windowWidth`、`windowHeight`、`windowLeft`、`windowTop` 控制。仅当 Left/Top 都是有限数值时使用绝对坐标，否则居中启动；尺寸小于 XAML 最小值时钳制。
+- `rememberWindowBounds=true` 默认开启。`LocationChanged`、`SizeChanged`、`StateChanged` 只重启 600ms 防抖计时器，避免拖动期间频繁写入；计时到期或托盘“退出”时写入。最大化时保存 `RestoreBounds`，关闭流程先停止定时器再立即保存。
+
+### 当前回归覆盖
+
+- STA/WPF harness 覆盖普通/无标题栏菜单和列表交互、跨笔记撤销、字体配置加载、绝对窗口坐标、移动/缩放后的防抖写回，以及托盘退出时的最终窗口矩形保存。
+- 每次 UI harness 运行前清理 `%TEMP%\FlashStickNote-WpfTests`，避免残留笔记导致虚拟化列表命中测试不稳定。

@@ -148,6 +148,27 @@
 - 右键笔记仍会选中该笔记以执行其上下文菜单操作，同时保留之前新建的“无标题”空草稿
 - STA/WPF 测试覆盖右键笔记项命中以及切换选中项后的草稿保留
 
+### 阶段 36：同步与撤销回归修复
+- 外部删除事件改为 450ms 防抖并二次确认文件存在性，原子替换和云同步产生的瞬态 delete/create 不再导致当前笔记跳转。
+- 每条笔记复用独立 AvalonEdit `TextDocument`；切换笔记后返回，撤销/重做历史仍保留。
+- 新增回归测试与同步根因说明文档。
+
+### 阶段 37：插入光标外观配置
+- `caretStyle`、`caretWidth`、`caretColor` 加入配置、发布模板和文档。
+- 使用 AvalonEdit Caret 层自绘 line/block/underline 光标，颜色为空时跟随正文或主题色。
+
+### 阶段 38：字体回退组
+- `fontFallbackFamilies` 作为有序数组加入配置；默认顺序为 Lucida Fax、Microsoft JhengHei、Arial、Microsoft YaHei。
+- 标题、正文和列表字体均使用同一回退组，兼容既有逗号分隔字体值。
+
+### 阶段 39：窗口矩形配置与持久化
+- 新增绝对窗口矩形配置：`windowWidth`、`windowHeight`、`windowLeft`、`windowTop`。
+- `rememberWindowBounds` 默认开启；托盘退出保存最终矩形，最大化保存还原矩形。
+
+### 阶段 40：窗口移动/缩放实时保存
+- 监听窗口位置、尺寸和状态变化，以 600ms 防抖保存，避免拖动期间频繁写文件。
+- 新增真实 WPF 回归测试，覆盖绝对坐标启动、移动/缩放后不退出即写回，以及退出时最终保存。
+
 ## 历史分支
 
 - `master`：阶段 1-15 的 TextBox 编辑区版本（自绘行号），保留作为回退点

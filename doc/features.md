@@ -9,6 +9,8 @@
 - 单实例：`allowMultiInstance=false`（默认）时二次启动唤醒已有窗口后退出
 - 开机启动：`startWithWindows=true` 时同步注册表 Run 键
 - 窗口图标可配置（`icon`），默认内置闪电图标
+- 窗口默认大小与绝对位置可由 `windowWidth`、`windowHeight`、`windowLeft`、`windowTop` 配置；Left/Top 留空时居中启动
+- 默认记住窗口矩形（`rememberWindowBounds=true`）：停止移动/缩放约 600ms 后保存，托盘“退出”立即保存；设为 false 可固定使用配置矩形
 
 ## 全局快捷键（shortcut.json）
 
@@ -35,6 +37,8 @@
 - 内置撤销/重做（Ctrl+Z / Ctrl+Y）
 - 超链接识别：仅 http/https，蓝字+下划线（`linkColor` 可配），**Ctrl+单击**在默认浏览器打开
 - 字体/颜色：标题、内容、行号、链接均可在 conf.json 配置（留空 = 跟随全局/主题）
+- 字体回退：`fontFamily` 配合有序 `fontFallbackFamilies`，默认 Lucida Fax → Microsoft JhengHei → Arial → Microsoft YaHei
+- 插入光标：`caretStyle`（line/block/underline）、`caretWidth`（1-12）和 `caretColor` 可配置
 
 ## 左侧列表
 
