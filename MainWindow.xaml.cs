@@ -27,6 +27,7 @@ public partial class MainWindow : Window
         var conf = ConfigService.LoadConfig();
         _appConfig = conf;
         ApplyWindowBounds(conf);
+        InitWindowBoundsPersistence();
         Logger.Init(ConfigService.BaseDir);
         Logger.Log($"程序启动，exe 目录: {ConfigService.BaseDir}");
         Logger.Log($"conf.json: notesDir={conf.NotesDir}, notesFormat={conf.NotesFormat}, fontFamily={conf.FontFamily}");
@@ -105,6 +106,10 @@ public partial class MainWindow : Window
     private Note? _hookedEditorNote;
     private readonly Dictionary<Note, ICSharpCode.AvalonEdit.Document.TextDocument> _editorDocuments = new();
     private readonly System.Windows.Threading.DispatcherTimer _zoomSaveTimer = new()
+    {
+        Interval = TimeSpan.FromMilliseconds(600),
+    };
+    private readonly System.Windows.Threading.DispatcherTimer _windowBoundsSaveTimer = new()
     {
         Interval = TimeSpan.FromMilliseconds(600),
     };
@@ -265,6 +270,33 @@ public partial class MainWindow : Window
 
     private static double NormalizeWindowDimension(double value, double minimum)
         => double.IsFinite(value) && value >= minimum ? value : minimum;
+    private void InitWindowBoundsPersistence()
+    {
+        LocationChanged += OnWindowLocationChanged;
+        SizeChanged += OnWindowSizeChanged;
+        StateChanged += OnWindowLocationChanged;
+        _windowBoundsSaveTimer.Tick += (_, _) =>
+        {
+            _windowBoundsSaveTimer.Stop();
+            SaveWindowBounds();
+        };
+    }
+
+    private void OnWindowLocationChanged(object? sender, EventArgs e) => QueueWindowBoundsSave();
+
+    private void OnWindowSizeChanged(object? sender, SizeChangedEventArgs e) => QueueWindowBoundsSave();
+
+    private void QueueWindowBoundsSave()
+    {
+        if (!_appConfig.RememberWindowBounds || !IsLoaded || _isExiting)
+        {
+            return;
+        }
+
+        _windowBoundsSaveTimer.Stop();
+        _windowBoundsSaveTimer.Start();
+    }
+
 
     private void SaveWindowBounds()
     {
@@ -967,6 +999,7 @@ public partial class MainWindow : Window
             vm.Dispose();
         }
 
+        _windowBoundsSaveTimer.Stop();
         SaveWindowBounds();
         foreach (var hotkey in _hotkeys.Values)
         {

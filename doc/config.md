@@ -26,7 +26,7 @@
   "windowHeight": 620.0,                 // 默认窗口高度（绝对值，最小 400）
   "windowLeft": null,                    // 默认左边坐标；与 windowTop 同时填写时生效
   "windowTop": null,                     // 默认上边坐标；null=居中启动
-  "rememberWindowBounds": false,         // 正常退出时保存最后的位置和大小
+  "rememberWindowBounds": true,          // 默认记住最后的位置和大小
 
   "notesDir": "notes",                   // 笔记目录：相对 exe / 绝对路径 / ~/ / %USERPROFILE%
   "notesFormat": "json",                 // 新建笔记格式：json | txt | md（旧文件保持原格式）
@@ -68,7 +68,7 @@
 ```
 `fontFamily` 是首选字体；`fontFallbackFamilies` 是有序回退列表。WPF 会优先使用首选字体，并在字体未安装或当前字符没有字形时依次回退。默认顺序为 Lucida Fax、Microsoft JhengHei、Arial、Microsoft YaHei。标题、正文和列表的单独字体配置仍可使用，且会共享该回退列表；`fontFamily` 和这些单独字体字段也兼容逗号分隔的字体名。
 
-`windowLeft` 和 `windowTop` 必须同时为数值才按绝对坐标启动；任一为 `null` 时居中启动。`rememberWindowBounds=true` 时，程序正常退出会将最后一次普通窗口矩形写回 `windowWidth`、`windowHeight`、`windowLeft` 和 `windowTop`；最大化状态会保存其还原后的矩形。无效尺寸会回退至最小窗口大小。
+`windowLeft` 和 `windowTop` 必须同时为数值才按绝对坐标启动；任一为 `null` 时居中启动。`rememberWindowBounds=true`（默认）时，窗口停止移动、缩放或切换状态约 600ms 后会写回最后一次普通窗口矩形；托盘菜单的“退出”会立即写回。最大化状态保存其还原后的矩形。设为 `false` 可固定使用配置中的默认矩形；无效尺寸会回退至最小窗口大小。
 
 AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾标记显示，因此使用 `showEndOfLine` 统一控制。旧配置中的 `showLineFeed` 或 `showCarriageReturn` 仍可读取并自动迁移为开启状态；下次应用保存配置时会写成新字段。
 

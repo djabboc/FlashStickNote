@@ -127,6 +127,7 @@ internal static class Program
         {
             RunWindowInteractionTest(hideTitleBar: false);
             RunWindowInteractionTest(hideTitleBar: true);
+            RunWindowBoundsLiveSaveTest();
             RunWindowBoundsPersistenceTest();
         }
         finally
@@ -222,6 +223,34 @@ internal static class Program
             InvokePrivate(window, "ExitApp");
         }
     }
+    private static void RunWindowBoundsLiveSaveTest()
+    {
+        WriteTestConfiguration(hideTitleBar: false, rememberWindowBounds: true);
+        var window = new MainWindow();
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+            window.Width = 1000;
+            window.Height = 720;
+            window.Left = 200;
+            window.Top = 170;
+            window.UpdateLayout();
+            PumpDispatcher(TimeSpan.FromMilliseconds(800));
+
+            var savedConfig = ConfigService.LoadConfig();
+            Assert(Math.Abs(savedConfig.WindowWidth - 1000) < 0.1 && Math.Abs(savedConfig.WindowHeight - 720) < 0.1,
+                "Moving or resizing the window should save dimensions without requiring exit.");
+            Assert(savedConfig.WindowLeft is { } left && savedConfig.WindowTop is { } top &&
+                Math.Abs(left - 200) < 0.1 && Math.Abs(top - 170) < 0.1,
+                "Moving or resizing the window should save coordinates without requiring exit.");
+        }
+        finally
+        {
+            InvokePrivate(window, "ExitApp");
+        }
+    }
+
 
     private static void RunWindowBoundsPersistenceTest()
     {
@@ -285,6 +314,19 @@ internal static class Program
         }
 
         return false;
+    }
+
+    private static void PumpDispatcher(TimeSpan duration)
+    {
+        var frame = new System.Windows.Threading.DispatcherFrame();
+        var timer = new System.Windows.Threading.DispatcherTimer { Interval = duration };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            frame.Continue = false;
+        };
+        timer.Start();
+        System.Windows.Threading.Dispatcher.PushFrame(frame);
     }
 
     private static string DescribeAncestors(DependencyObject? node)

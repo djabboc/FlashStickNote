@@ -24,7 +24,7 @@ public class AppConfig
     public double WindowHeight { get; set; } = 620.0;
     public double? WindowLeft { get; set; }
     public double? WindowTop { get; set; }
-    public bool RememberWindowBounds { get; set; } = false;
+    public bool RememberWindowBounds { get; set; } = true;
     public string NotesDir { get; set; } = "notes";
     public string NotesFormat { get; set; } = "json";
     public bool AllowMultiInstance { get; set; } = false;

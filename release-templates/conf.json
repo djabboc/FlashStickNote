@@ -12,7 +12,7 @@
   "windowHeight": 620.0,
   "windowLeft": null,
   "windowTop": null,
-  "rememberWindowBounds": false,
+  "rememberWindowBounds": true,
   "notesDir": "notes",
   "notesFormat": "json",
   "allowMultiInstance": false,

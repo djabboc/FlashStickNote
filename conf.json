@@ -12,7 +12,7 @@
   "windowHeight": 620,
   "windowLeft": null,
   "windowTop": null,
-  "rememberWindowBounds": false,
+  "rememberWindowBounds": true,
   "notesDir": "C:\\Users\\huang\\Desktop\\MyNote",
   "notesFormat": "txt",
   "allowMultiInstance": false,
