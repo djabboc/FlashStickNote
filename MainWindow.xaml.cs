@@ -844,6 +844,7 @@ public partial class MainWindow : Window
         if (DataContext is MainViewModel vm)
         {
             vm.Flush();
+            vm.Dispose();
         }
 
         foreach (var hotkey in _hotkeys.Values)

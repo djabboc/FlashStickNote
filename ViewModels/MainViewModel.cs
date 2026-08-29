@@ -28,6 +28,8 @@ public class MainViewModel : INotifyPropertyChanged
     private bool _matchCase;
     private string _searchError = "";
     private readonly Dictionary<string, int> _loadFailures = new(StringComparer.OrdinalIgnoreCase);
+    private bool _isProcessingReloads;
+    private bool _isDisposed;
 
     public ObservableCollection<Note> Notes { get; } = new();
 
@@ -184,7 +186,7 @@ public class MainViewModel : INotifyPropertyChanged
             _watcher.Created += OnWatcherCreated;
             _watcher.Deleted += OnWatcherDeleted;
             _watcher.Renamed += OnWatcherRenamed;
-            _watcher.Error += (_, _) => Logger.Log("笔记目录监控出错");
+            _watcher.Error += OnWatcherError;
             _watcher.EnableRaisingEvents = true;
             Logger.Log($"已开启笔记目录监控: {_storage.Dir}");
         }
@@ -192,6 +194,84 @@ public class MainViewModel : INotifyPropertyChanged
         {
             Logger.Log($"笔记目录监控启动失败: {ex.Message}");
         }
+    }
+
+    private void OnWatcherError(object sender, ErrorEventArgs e)
+    {
+        Logger.Log($"Note directory watcher failed: {e.GetException().Message}");
+        RunOnDispatcher(RecoverWatcher);
+    }
+
+    private void RecoverWatcher()
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        _watcher?.Dispose();
+        _watcher = null;
+        InitWatcher();
+
+        try
+        {
+            var paths = Directory.EnumerateFiles(_storage.Dir)
+                .Where(IsSupportedFile)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var note in Notes
+                .Where(note => !string.IsNullOrEmpty(note.StoredFileName) && !paths.Contains(note.StoredFileName))
+                .ToList())
+            {
+                HandleDeleted(note.StoredFileName!);
+            }
+
+            foreach (var path in paths)
+            {
+                QueueReload(path);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Failed to rescan note directory: {ex.Message}");
+        }
+    }
+
+    private void QueueReloadFromWatcher(string path)
+        => RunOnDispatcher(() => QueueReload(path));
+
+    private void RunOnDispatcher(Action action)
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
+            {
+                if (!_isDisposed)
+                {
+                    action();
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Failed to schedule note synchronization: {ex.Message}");
+        }
+    }
+
+    private void QueueReload(string path)
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        _reloadQueue.Add(path);
+        _reloadTimer.Stop();
+        _reloadTimer.Start();
     }
 
     private static bool IsSupportedFile(string path)
@@ -214,12 +294,7 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
-        {
-            _reloadQueue.Add(e.FullPath);
-            _reloadTimer.Stop();
-            _reloadTimer.Start();
-        });
+        QueueReloadFromWatcher(e.FullPath);
     }
 
     private void OnWatcherCreated(object sender, FileSystemEventArgs e)
@@ -229,12 +304,7 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
-        {
-            _reloadQueue.Add(e.FullPath);
-            _reloadTimer.Stop();
-            _reloadTimer.Start();
-        });
+        QueueReloadFromWatcher(e.FullPath);
     }
 
     private void OnWatcherDeleted(object sender, FileSystemEventArgs e)
@@ -244,7 +314,7 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        System.Windows.Application.Current.Dispatcher.BeginInvoke(() => HandleDeleted(e.FullPath));
+        RunOnDispatcher(() => HandleDeleted(e.FullPath));
     }
 
     private void OnWatcherRenamed(object sender, RenamedEventArgs e)
@@ -254,7 +324,7 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
+        RunOnDispatcher(() =>
         {
             try
             {
@@ -263,12 +333,12 @@ public class MainViewModel : INotifyPropertyChanged
                 if (note != null)
                 {
                     note.StoredFileName = e.FullPath;
-                    ReloadFromDisk(e.FullPath, note);
+                    QueueReload(e.FullPath);
                     Logger.Log($"检测到文件重命名: {Path.GetFileName(e.OldFullPath)} -> {Path.GetFileName(e.FullPath)}");
                 }
                 else
                 {
-                    HandleCreated(e.FullPath);
+                    QueueReload(e.FullPath);
                 }
             }
             catch (Exception ex)
@@ -278,46 +348,64 @@ public class MainViewModel : INotifyPropertyChanged
         });
     }
 
-    private void ProcessReloadQueue()
+    private async void ProcessReloadQueue()
     {
+        if (_isDisposed || _isProcessingReloads)
+        {
+            return;
+        }
+
+        _isProcessingReloads = true;
         var paths = _reloadQueue.ToList();
         _reloadQueue.Clear();
-        foreach (var path in paths)
+        try
         {
-            try
+            foreach (var path in paths)
             {
-                if (_storage.WasRecentlyWritten(path))
+                try
                 {
-                    continue;
-                }
-
-                if (!File.Exists(path))
-                {
-                    continue;
-                }
-
-                var note = Notes.FirstOrDefault(n =>
-                    string.Equals(n.StoredFileName, path, StringComparison.OrdinalIgnoreCase));
-                if (note == null)
-                {
-                    if (!HandleCreated(path))
+                    if (_storage.WasRecentlyWritten(path) || !File.Exists(path))
                     {
-                        RequeueLater(path);
+                        continue;
                     }
 
-                    continue;
-                }
+                    var note = Notes.FirstOrDefault(n =>
+                        string.Equals(n.StoredFileName, path, StringComparison.OrdinalIgnoreCase));
+                    if (ReferenceEquals(note, _pendingSave))
+                    {
+                        continue;
+                    }
 
-                if (ReferenceEquals(note, _pendingSave))
+                    var loaded = await Task.Run(() => _storage.LoadFile(path));
+                    if (_isDisposed)
+                    {
+                        return;
+                    }
+
+                    if (note == null)
+                    {
+                        if (!HandleCreated(path, loaded))
+                        {
+                            RequeueLater(path);
+                        }
+
+                        continue;
+                    }
+
+                    ReloadFromDisk(path, note, loaded);
+                }
+                catch (Exception ex)
                 {
-                    continue;
+                    Logger.Log($"同步外部修改失败: {Path.GetFileName(path)} ({ex.Message})");
                 }
-
-                ReloadFromDisk(path, note);
             }
-            catch (Exception ex)
+        }
+        finally
+        {
+            _isProcessingReloads = false;
+            if (!_isDisposed && _reloadQueue.Count > 0)
             {
-                Logger.Log($"同步外部修改失败: {Path.GetFileName(path)} ({ex.Message})");
+                QueueReload(_reloadQueue.First());
             }
         }
     }
@@ -332,16 +420,11 @@ public class MainViewModel : INotifyPropertyChanged
         _loadFailures[path] = count + 1;
         _ = Task.Delay(1500).ContinueWith(_ =>
         {
-            System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
-            {
-                _reloadQueue.Add(path);
-                _reloadTimer.Stop();
-                _reloadTimer.Start();
-            });
+            QueueReloadFromWatcher(path);
         });
     }
 
-    private bool HandleCreated(string path)
+    private bool HandleCreated(string path, Note? note)
     {
         try
         {
@@ -355,7 +438,6 @@ public class MainViewModel : INotifyPropertyChanged
                 return true;
             }
 
-            var note = _storage.LoadFile(path);
             if (note == null)
             {
                 return false;
@@ -425,9 +507,8 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void ReloadFromDisk(string path, Note note)
+    private void ReloadFromDisk(string path, Note note, Note? loaded)
     {
-        var loaded = _storage.LoadFile(path);
         if (loaded == null || loaded.IsEmpty)
         {
             return;
@@ -492,6 +573,25 @@ public class MainViewModel : INotifyPropertyChanged
         {
             _storage.Save(_pendingSave);
             _pendingSave = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        _isDisposed = true;
+        _saveTimer.Stop();
+        _reloadTimer.Stop();
+        _reloadQueue.Clear();
+        _watcher?.Dispose();
+        _watcher = null;
+        if (_selectedNote != null)
+        {
+            _selectedNote.PropertyChanged -= OnNotePropertyChanged;
         }
     }
 
