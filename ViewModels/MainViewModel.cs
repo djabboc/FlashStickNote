@@ -314,7 +314,13 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        RunOnDispatcher(() => HandleDeleted(e.FullPath));
+        RunOnDispatcher(() =>
+        {
+            if (!_storage.WasRecentlyWritten(e.FullPath))
+            {
+                HandleDeleted(e.FullPath);
+            }
+        });
     }
 
     private void OnWatcherRenamed(object sender, RenamedEventArgs e)

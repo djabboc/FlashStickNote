@@ -102,6 +102,7 @@ public partial class MainWindow : Window
     private bool _zoomEnabled;
     private bool _editorSyncing;
     private Note? _hookedEditorNote;
+    private readonly Dictionary<Note, ICSharpCode.AvalonEdit.Document.TextDocument> _editorDocuments = new();
     private readonly System.Windows.Threading.DispatcherTimer _zoomSaveTimer = new()
     {
         Interval = TimeSpan.FromMilliseconds(600),
@@ -305,14 +306,41 @@ public partial class MainWindow : Window
     private void SyncEditorFromSelectedNote()
     {
         var vm = DataContext as MainViewModel;
-        var text = vm?.SelectedNote?.Content ?? "";
-        if (ContentBox.Text == text)
+        var note = vm?.SelectedNote;
+        if (note == null)
         {
+            if (ContentBox.Document.TextLength == 0)
+            {
+                return;
+            }
+
+            _editorSyncing = true;
+            ContentBox.Document = new ICSharpCode.AvalonEdit.Document.TextDocument();
+            _editorSyncing = false;
+            return;
+        }
+
+        if (!_editorDocuments.TryGetValue(note, out var document))
+        {
+            document = new ICSharpCode.AvalonEdit.Document.TextDocument(note.Content ?? "");
+            _editorDocuments[note] = document;
+        }
+
+        if (ReferenceEquals(ContentBox.Document, document))
+        {
+            if (ContentBox.Text == note.Content)
+            {
+                return;
+            }
+
+            _editorSyncing = true;
+            document.Text = note.Content ?? "";
+            _editorSyncing = false;
             return;
         }
 
         _editorSyncing = true;
-        ContentBox.Text = text;
+        ContentBox.Document = document;
         _editorSyncing = false;
     }
 
