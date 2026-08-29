@@ -13,7 +13,12 @@
 
 ```json
 {
-  "fontFamily": "Microsoft YaHei UI",   // 全局默认字体
+  "fontFamily": "Lucida Fax",            // 全局首选字体
+  "fontFallbackFamilies": [                // 全局字体回退，按顺序使用
+    "Microsoft JhengHei",
+    "Arial",
+    "Microsoft YaHei"
+  ],
   "fontSize": 14.0,                      // 内容框字号
   "titleFontSize": 18.0,                 // 标题框字号
   "noteListFontSize": 13.0,              // 列表日期行字号
@@ -56,6 +61,8 @@
   "caretColor": ""                       // 正文光标颜色；留空跟随正文/主题
 }
 ```
+`fontFamily` 是首选字体；`fontFallbackFamilies` 是有序回退列表。WPF 会优先使用首选字体，并在字体未安装或当前字符没有字形时依次回退。默认顺序为 Lucida Fax、Microsoft JhengHei、Arial、Microsoft YaHei。标题、正文和列表的单独字体配置仍可使用，且会共享该回退列表；`fontFamily` 和这些单独字体字段也兼容逗号分隔的字体名。
+
 
 AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾标记显示，因此使用 `showEndOfLine` 统一控制。旧配置中的 `showLineFeed` 或 `showCarriageReturn` 仍可读取并自动迁移为开启状态；下次应用保存配置时会写成新字段。
 

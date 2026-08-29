@@ -1,5 +1,10 @@
 {
   "fontFamily": "Lucida Fax",
+  "fontFallbackFamilies": [
+    "Microsoft JhengHei",
+    "Arial",
+    "Microsoft YaHei"
+  ],
   "fontSize": 28,
   "titleFontSize": 30,
   "noteListFontSize": 13,

@@ -1,5 +1,10 @@
 {
-  "fontFamily": "Microsoft YaHei UI",
+  "fontFamily": "Lucida Fax",
+  "fontFallbackFamilies": [
+    "Microsoft JhengHei",
+    "Arial",
+    "Microsoft YaHei"
+  ],
   "fontSize": 14.0,
   "titleFontSize": 18.0,
   "noteListFontSize": 13.0,

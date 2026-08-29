@@ -162,19 +162,27 @@ public partial class MainWindow : Window
 
     private void ApplyConfig(AppConfig conf)
     {
-        var baseFamily = conf.FontFamily;
-        var titleFamily = string.IsNullOrWhiteSpace(conf.TitleFontFamily) ? baseFamily : conf.TitleFontFamily;
-        var contentFamily = string.IsNullOrWhiteSpace(conf.ContentFontFamily) ? baseFamily : conf.ContentFontFamily;
-        var listTitleFamily = string.IsNullOrWhiteSpace(conf.ListTitleFontFamily) ? baseFamily : conf.ListTitleFontFamily;
-        var listPreviewFamily = string.IsNullOrWhiteSpace(conf.ListPreviewFontFamily) ? baseFamily : conf.ListPreviewFontFamily;
+        var baseFamily = CreateFontFamily(conf.FontFamily, conf.FontFallbackFamilies);
+        var titleFamily = CreateFontFamily(
+            string.IsNullOrWhiteSpace(conf.TitleFontFamily) ? conf.FontFamily : conf.TitleFontFamily,
+            conf.FontFallbackFamilies);
+        var contentFamily = CreateFontFamily(
+            string.IsNullOrWhiteSpace(conf.ContentFontFamily) ? conf.FontFamily : conf.ContentFontFamily,
+            conf.FontFallbackFamilies);
+        var listTitleFamily = CreateFontFamily(
+            string.IsNullOrWhiteSpace(conf.ListTitleFontFamily) ? conf.FontFamily : conf.ListTitleFontFamily,
+            conf.FontFallbackFamilies);
+        var listPreviewFamily = CreateFontFamily(
+            string.IsNullOrWhiteSpace(conf.ListPreviewFontFamily) ? conf.FontFamily : conf.ListPreviewFontFamily,
+            conf.FontFallbackFamilies);
 
         try
         {
-            TitleBox.FontFamily = new System.Windows.Media.FontFamily(titleFamily);
-            ContentBox.FontFamily = new System.Windows.Media.FontFamily(contentFamily);
-            NoteList.FontFamily = new System.Windows.Media.FontFamily(baseFamily);
-            Resources["Theme.ListTitleFontFamily"] = new System.Windows.Media.FontFamily(listTitleFamily);
-            Resources["Theme.ListPreviewFontFamily"] = new System.Windows.Media.FontFamily(listPreviewFamily);
+            TitleBox.FontFamily = titleFamily;
+            ContentBox.FontFamily = contentFamily;
+            NoteList.FontFamily = baseFamily;
+            Resources["Theme.ListTitleFontFamily"] = listTitleFamily;
+            Resources["Theme.ListPreviewFontFamily"] = listPreviewFamily;
         }
         catch
         {
@@ -234,6 +242,40 @@ public partial class MainWindow : Window
 
         ContentBox.ConfigureCaret(conf.CaretStyle, conf.CaretWidth,
             ParseBrush(conf.CaretColor) ?? contentBrush ?? editorForeground);
+    }
+
+    private static System.Windows.Media.FontFamily CreateFontFamily(string? primaryFamily, IEnumerable<string>? fallbackFamilies)
+    {
+        var familyNames = new List<string>();
+        AppendFontFamilies(familyNames, primaryFamily);
+
+        if (fallbackFamilies != null)
+        {
+            foreach (var fallbackFamily in fallbackFamilies)
+            {
+                AppendFontFamilies(familyNames, fallbackFamily);
+            }
+        }
+
+        return familyNames.Count == 0
+            ? System.Windows.SystemFonts.MessageFontFamily
+            : new System.Windows.Media.FontFamily(string.Join(", ", familyNames));
+    }
+
+    private static void AppendFontFamilies(ICollection<string> familyNames, string? configuredFamilies)
+    {
+        if (string.IsNullOrWhiteSpace(configuredFamilies))
+        {
+            return;
+        }
+
+        foreach (var familyName in configuredFamilies.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!familyNames.Contains(familyName, StringComparer.OrdinalIgnoreCase))
+            {
+                familyNames.Add(familyName);
+            }
+        }
     }
 
     private void InitEditor()

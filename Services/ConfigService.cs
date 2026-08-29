@@ -15,7 +15,8 @@ public class ShortcutConfig
 
 public class AppConfig
 {
-    public string FontFamily { get; set; } = "Microsoft YaHei UI";
+    public string FontFamily { get; set; } = "Lucida Fax";
+    public List<string> FontFallbackFamilies { get; set; } = ["Microsoft JhengHei", "Arial", "Microsoft YaHei"];
     public double FontSize { get; set; } = 14.0;
     public double TitleFontSize { get; set; } = 18.0;
     public double NoteListFontSize { get; set; } = 13.0;

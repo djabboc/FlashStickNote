@@ -65,6 +65,14 @@ internal static class Program
         Assert(serializedConfig.Contains("\"showEndOfLine\":true", StringComparison.Ordinal), "New configuration should serialize showEndOfLine.");
         Assert(!serializedConfig.Contains("showLineFeed", StringComparison.Ordinal), "New configuration should not serialize legacy line-feed settings.");
 
+        var defaultFontConfig = new AppConfig();
+        Assert(defaultFontConfig.FontFamily == "Lucida Fax", "The default font should prefer Lucida Fax.");
+        Assert(defaultFontConfig.FontFallbackFamilies.SequenceEqual(new[] { "Microsoft JhengHei", "Arial", "Microsoft YaHei" }),
+            "The default font fallbacks must preserve the configured priority.");
+        var serializedFontConfig = JsonSerializer.Serialize(defaultFontConfig, options);
+        Assert(serializedFontConfig.Contains("\"fontFallbackFamilies\":[\"Microsoft JhengHei\",\"Arial\",\"Microsoft YaHei\"]", StringComparison.Ordinal),
+            "Font fallback families should serialize as an ordered configuration array.");
+
         Assert(DocumentStatisticsCalculator.Calculate("") == new DocumentStatistics(0, 0), "Empty content should have zero lines and characters.");
         var mixedLineEndings = DocumentStatisticsCalculator.Calculate("abc\r\n你好 \t!\rb\n");
         Assert(mixedLineEndings.LineCount == 4, "CRLF, CR, and LF should each count as one logical line break.");
