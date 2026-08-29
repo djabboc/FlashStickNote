@@ -44,6 +44,7 @@ MainWindow 构造
 - A delete event is confirmed only after a 450ms debounce and a second file-existence check. Atomic replacement writes a temporary file and then replaces the target; cloud-synced directories can also report a short delete/create burst for one unchanged path. The previous immediate delete handler removed the selected note before the matching create event arrived, which selected the next note in the list. These transient events must never be interpreted as an external note deletion.
 - Each note owns an AvalonEdit `TextDocument`; switching notes reuses that document so its undo and redo history remains available when returning to the note. Assigning `TextEditor.Text` on every selection change replaces document content and clears its undo stack, which was why Ctrl+Z no longer worked after returning to a note.
 - `Directory.Build.props` clears inherited NuGet fallback folders so builds do not depend on a local Visual Studio installation path.
+- txt/md use the file name as their title and the complete file text as their content. Do not infer a legacy title line from a first line that equals the file name: it is indistinguishable from legitimate content and watcher reloads can otherwise synchronize the editor to an empty value.
 
 ### 快捷键分层（作用域原则）
 

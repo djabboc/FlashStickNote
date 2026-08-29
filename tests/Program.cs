@@ -106,6 +106,15 @@ internal static class Program
             Assert(File.Exists(renamedPath), "A failed save must retain the original file.");
             Assert(!Directory.EnumerateFiles(storage.Dir, "*.tmp").Any(), "A failed save must clean up its temporary file.");
 
+            var duplicateTitleContent = new Note { Title = "XXX", Content = "XXX" };
+            Assert(storage.Save(duplicateTitleContent), "Saving content equal to its title should succeed.");
+            var duplicatePath = duplicateTitleContent.StoredFileName ?? throw new InvalidOperationException("The duplicate-title note must have a path.");
+            Assert(storage.LoadFile(duplicatePath)?.Content == "XXX", "Loading text content equal to its title must preserve the content.");
+
+            duplicateTitleContent.Content = "XXX\r\nYYY";
+            Assert(storage.Save(duplicateTitleContent), "Saving a second line after duplicate-title content should succeed.");
+            Assert(storage.LoadFile(duplicatePath)?.Content == "XXX\r\nYYY", "Loading multi-line content beginning with its title must preserve every line.");
+
             Assert(storage.Delete(note), "Deleting a stored note should move it to the recycle directory.");
             Assert(note.StoredFileName == null, "A successfully recycled note should clear its stored path.");
             Assert(!File.Exists(renamedPath), "The active note file should be removed after recycling.");

@@ -170,40 +170,15 @@ public class NoteStorage
             return note;
         }
 
-        var markdown = string.Equals(ext, ".md", StringComparison.OrdinalIgnoreCase);
         var title = Path.GetFileNameWithoutExtension(file);
-        var content = StripTitleLine(text, title, markdown);
         return new Note
         {
             Title = title,
-            Content = content,
+            Content = text,
             CreatedAt = File.GetCreationTime(file),
             UpdatedAt = File.GetLastWriteTime(file),
             StoredFileName = file,
         };
-    }
-
-    private static string StripTitleLine(string text, string title, bool markdown)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return "";
-        }
-
-        var lines = text.Split('\n');
-        var first = lines[0].TrimEnd('\r').Trim();
-        var expected = markdown ? "# " + title : title;
-        if (!string.Equals(first, expected, StringComparison.OrdinalIgnoreCase))
-        {
-            return text;
-        }
-
-        if (lines.Length >= 2 && !string.IsNullOrWhiteSpace(lines[1].TrimEnd('\r')))
-        {
-            return text;
-        }
-
-        return string.Join("\n", lines.Skip(1)).TrimStart('\r', '\n');
     }
 
     private static string? ReadAllTextWithRetry(string file)
