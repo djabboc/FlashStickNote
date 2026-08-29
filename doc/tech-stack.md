@@ -70,7 +70,7 @@ ThemeService 内置 light、green、paper、dark 四套 ThemeColors，运行目�
 
 ### 列表导航与置顶
 
-MainWindow 的窗口内 InputBindings 处理 Ctrl+F、Ctrl+B 与 F2。ViewModel 保持 `IsPinned` 与排序，Window 承担 WPF 列表滚动和焦点恢复。`pinnedNotes` 使用 JSON 的稳定 Id 或 txt/md 相对路径；所有 Note 的 IsPinned/StoredFileName 变化均会写回配置，因此文本笔记改名不会丢失置顶状态。
+MainWindow 的窗口内 InputBindings 处理 Ctrl+F、Ctrl+B、F2 与 Ctrl+P。ViewModel 保持 `IsPinned` 与排序，Window 承担 WPF 列表滚动、显式 Up/Down 导航和焦点恢复。`pinnedNotes` 使用 JSON 的稳定 Id 或 txt/md 相对路径；所有 Note 的 IsPinned/StoredFileName 变化均会写回配置，因此文本笔记改名不会丢失置顶状态。
 
 ## 本地文件存储
 

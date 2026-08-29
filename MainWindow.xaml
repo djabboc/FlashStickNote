@@ -130,6 +130,7 @@
                      SelectionChanged="NoteList_SelectionChanged"
                      PreviewMouseRightButtonDown="NoteList_PreviewMouseRightButtonDown"
                      ContextMenuOpening="NoteList_ContextMenuOpening"
+                     PreviewKeyDown="NoteList_PreviewKeyDown"
                      KeyDown="NoteList_KeyDown"
                      BorderThickness="0"
                      Background="{DynamicResource Theme.ListBackground}"

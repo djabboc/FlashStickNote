@@ -6,5 +6,6 @@
   "toggleWordWrap": "Alt+Z",
   "focusSearch": "Ctrl+F",
   "focusNoteList": "Ctrl+B",
-  "cyclePinnedNotes": "F2"
+  "cyclePinnedNotes": "F2",
+  "togglePin": "Ctrl+P"
 }

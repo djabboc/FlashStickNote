@@ -76,6 +76,7 @@ internal static class Program
         Assert(defaultShortcutConfig.FocusSearch == "Ctrl+F", "Ctrl+F should be the default search-focus shortcut.");
         Assert(defaultShortcutConfig.FocusNoteList == "Ctrl+B", "Ctrl+B should be the default note-list shortcut.");
         Assert(defaultShortcutConfig.CyclePinnedNotes == "F2", "F2 should be the default pinned-note cycle shortcut.");
+        Assert(defaultShortcutConfig.TogglePin == "Ctrl+P", "Ctrl+P should be the default pin toggle shortcut.");
         Assert(new AppConfig().PinnedNotes.Count == 0, "Pinned-note configuration should default to an empty list.");
         var defaultCaretConfig = new AppConfig();
         Assert(defaultCaretConfig.CaretBlinkInterval == 530, "The default caret blink interval should be 530ms.");
@@ -218,16 +219,59 @@ internal static class Program
             viewModel.TogglePin(pinnedA);
             Assert(viewModel.Notes.Take(2).All(note => note.IsPinned), "Pinned notes must sort before ordinary notes.");
             Assert(ConfigService.LoadConfig().PinnedNotes.Count == 2, "Pin changes must persist two note identifiers in configuration.");
+            Assert(pinnedA.StoredFileName != null && pinnedB.StoredFileName != null,
+                "Pinned notes must be written before their pin keys are persisted.");
+            var restartConfig = ConfigService.LoadConfig();
+            var restarted = new MainViewModel(new NoteStorage(
+                ConfigService.BaseDir,
+                restartConfig.NotesDir,
+                restartConfig.NotesFormat));
+            try
+            {
+                Assert(restarted.Notes.Single(note => note.Id == pinnedA.Id).IsPinned &&
+                    restarted.Notes.Single(note => note.Id == pinnedB.Id).IsPinned,
+                    "Pinned notes must remain pinned after reloading the application state.");
+            }
+            finally
+            {
+                restarted.Dispose();
+            }
+
+            viewModel.SelectedNote = normalNote;
+            InvokePrivate(window, "ToggleSelectedNotePin");
+            Assert(normalNote.IsPinned, "Ctrl+P command must pin the currently selected note.");
+            InvokePrivate(window, "ToggleSelectedNotePin");
+            Assert(!normalNote.IsPinned, "Ctrl+P command must remove the current pin on a second invocation.");
 
             viewModel.SelectedNote = normalNote;
             viewModel.SearchText = "no matching note";
+            editor.Focus();
             InvokePrivate(window, "FocusNoteList");
             PumpDispatcher(TimeSpan.FromMilliseconds(50));
             Assert(viewModel.SearchText == "", "Focusing the note list must clear a filter that hides the current note.");
             Assert(noteList.IsKeyboardFocusWithin, "Ctrl+B behavior must move keyboard focus to the note list.");
-            Assert(noteList.ItemContainerGenerator.ContainerFromItem(normalNote) != null,
-                "Ctrl+B behavior must generate the current note's visible list item.");
+            Assert(noteList.ItemContainerGenerator.ContainerFromItem(normalNote) is ListBoxItem listItem && listItem.IsKeyboardFocused,
+                "Ctrl+B behavior must focus the current ListBoxItem rather than another control.");
 
+            var selectedIndex = noteList.SelectedIndex;
+            var expectedNext = noteList.Items[Math.Min(selectedIndex + 1, noteList.Items.Count - 1)] as Note;
+            var downKey = new KeyEventArgs(
+                Keyboard.PrimaryDevice,
+                PresentationSource.FromVisual(window),
+                Environment.TickCount,
+                Key.Down)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            };
+            InvokePrivate(window, "NoteList_PreviewKeyDown", noteList, downKey);
+            Assert(ReferenceEquals(viewModel.SelectedNote, expectedNext),
+                "Down arrow in list mode must browse the next visible note.");
+            Assert(noteList.IsKeyboardFocusWithin,
+                "List navigation must retain keyboard focus in the note list.");
+
+            InvokePrivate(window, "FocusNoteList");
+            Assert(editor.TextArea.IsKeyboardFocused,
+                "Pressing Ctrl+B from the list must return to the previous editor focus.");
             searchBox.Text = "find me";
             InvokePrivate(window, "FocusSearch");
             Assert(searchBox.IsKeyboardFocused && searchBox.SelectedText == "find me",

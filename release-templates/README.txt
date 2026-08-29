@@ -23,7 +23,8 @@ FlashStickNote v%VERSION%
 8. Ctrl+F        窗口内：聚焦搜索框
 9. Ctrl+B        窗口内：聚焦左侧列表并显示当前笔记
 10. F2           窗口内：在置顶笔记之间循环
-11. Ctrl+单击链接 用浏览器打开（仅识别 http/https）
+11. Ctrl+P       窗口内：切换当前笔记置顶
+12. Ctrl+单击链接 用浏览器打开（仅识别 http/https）
 
 目录与文件
 ----------

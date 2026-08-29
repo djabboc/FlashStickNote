@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private string? _iconPath;
     private bool _isExiting;
     private System.Windows.Controls.ListBoxItem? _rightClickedNoteItem;
+    private System.Windows.IInputElement? _lastEditorFocus;
 
     public MainWindow()
     {
@@ -688,6 +689,7 @@ public partial class MainWindow : Window
         AddWindowShortcut(shortcut.FocusSearch, FocusSearch, "聚焦搜索");
         AddWindowShortcut(shortcut.FocusNoteList, FocusNoteList, "聚焦笔记列表");
         AddWindowShortcut(shortcut.CyclePinnedNotes, CyclePinnedNotes, "切换置顶笔记");
+        AddWindowShortcut(shortcut.TogglePin, ToggleSelectedNotePin, "切换笔记置顶");
     }
 
     private void ToggleWordWrap()
@@ -739,14 +741,53 @@ public partial class MainWindow : Window
 
     private void FocusNoteList()
     {
+        if (NoteList.IsKeyboardFocusWithin)
+        {
+            RestoreEditorFocus();
+            return;
+        }
+
+        RememberEditorFocus();
         if (DataContext is MainViewModel vm && vm.SelectedNote != null)
         {
             EnsureNoteVisible(vm.SelectedNote);
+            FocusNoteListItem(vm.SelectedNote);
+            return;
         }
 
         NoteList.Focus();
     }
 
+    private void RememberEditorFocus()
+    {
+        if (TitleBox.IsKeyboardFocusWithin || ContentBox.IsKeyboardFocusWithin)
+        {
+            _lastEditorFocus = System.Windows.Input.Keyboard.FocusedElement;
+        }
+    }
+
+    private void RestoreEditorFocus()
+    {
+        if (_lastEditorFocus is UIElement element && element.IsVisible && element.IsEnabled)
+        {
+            System.Windows.Input.Keyboard.Focus(_lastEditorFocus);
+            return;
+        }
+
+        ContentBox.Focus();
+    }
+
+    private void FocusNoteListItem(Note note)
+    {
+        NoteList.UpdateLayout();
+        NoteList.ScrollIntoView(note);
+        NoteList.Focus();
+        if (NoteList.ItemContainerGenerator.ContainerFromItem(note) is System.Windows.Controls.ListBoxItem item)
+        {
+            item.IsSelected = true;
+            item.Focus();
+        }
+    }
     private void CyclePinnedNotes()
     {
         if (DataContext is not MainViewModel vm)
@@ -780,6 +821,28 @@ public partial class MainWindow : Window
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,
             new Action(() => NoteList.ScrollIntoView(note)));
     }
+    private void NoteList_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (System.Windows.Input.Keyboard.Modifiers != System.Windows.Input.ModifierKeys.None ||
+            e.Key is not (System.Windows.Input.Key.Up or System.Windows.Input.Key.Down) ||
+            NoteList.Items.Count == 0)
+        {
+            return;
+        }
+
+        var selectedIndex = NoteList.SelectedIndex;
+        var nextIndex = e.Key == System.Windows.Input.Key.Up
+            ? Math.Max(0, selectedIndex <= 0 ? 0 : selectedIndex - 1)
+            : Math.Min(NoteList.Items.Count - 1, selectedIndex < 0 ? 0 : selectedIndex + 1);
+        if (nextIndex != selectedIndex && NoteList.Items[nextIndex] is Note note)
+        {
+            NoteList.SelectedIndex = nextIndex;
+            FocusNoteListItem(note);
+        }
+
+        e.Handled = true;
+    }
+
     private void NoteList_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key != System.Windows.Input.Key.Delete)
@@ -790,7 +853,6 @@ public partial class MainWindow : Window
         DeleteSelectedWithConfirm();
         e.Handled = true;
     }
-
     private void NoteList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (DataContext is MainViewModel vm && NoteList.SelectedItem is Note note)
@@ -845,7 +907,7 @@ public partial class MainWindow : Window
         return null;
     }
     private void DeleteContextMenuItem_Click(object sender, RoutedEventArgs e) => DeleteSelectedWithConfirm();
-    private void TogglePinMenuItem_Click(object sender, RoutedEventArgs e)
+    private void ToggleSelectedNotePin()
     {
         if (DataContext is MainViewModel vm &&
             vm.TogglePin(vm.SelectedNote) &&
@@ -854,6 +916,7 @@ public partial class MainWindow : Window
             EnsureNoteVisible(vm.SelectedNote);
         }
     }
+    private void TogglePinMenuItem_Click(object sender, RoutedEventArgs e) => ToggleSelectedNotePin();
 
     private void DeleteSelectedWithConfirm()
     {

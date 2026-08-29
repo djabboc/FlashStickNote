@@ -14,6 +14,7 @@ public class ShortcutConfig
     public string FocusSearch { get; set; } = "Ctrl+F";
     public string FocusNoteList { get; set; } = "Ctrl+B";
     public string CyclePinnedNotes { get; set; } = "F2";
+    public string TogglePin { get; set; } = "Ctrl+P";
 }
 
 public class AppConfig

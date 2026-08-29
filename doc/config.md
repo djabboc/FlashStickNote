@@ -92,11 +92,12 @@ AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾�
   "toggleWordWrap": "Alt+Z",        // 窗口内：切换自动换行（结果写回 conf.json 的 wordWrap）
   "focusSearch": "Ctrl+F",          // 窗口内：聚焦搜索框并全选搜索词
   "focusNoteList": "Ctrl+B",          // 窗口内：聚焦笔记列表并显示当前笔记
-  "cyclePinnedNotes": "F2"            // 窗口内：在置顶笔记之间循环
+  "cyclePinnedNotes": "F2",           // 窗口内：在置顶笔记之间循环
+  "togglePin": "Ctrl+P"               // 窗口内：切换当前笔记的置顶标签
 }
 ```
 
-- 作用域原则：**窗口相关**（toggleWindow）注册为全局热键；**编辑相关**（newNote/hideWindow/fontZoom/focusSearch/focusNoteList/cyclePinnedNotes）只在 FlashStickNote 窗口内生效，不会在 VS Code 等其他程序里误触发
+- 作用域原则：**窗口相关**（toggleWindow）注册为全局热键；**编辑相关**（newNote/hideWindow/fontZoom/focusSearch/focusNoteList/cyclePinnedNotes/togglePin）只在 FlashStickNote 窗口内生效，不会在 VS Code 等其他程序里误触发
 - 全局快捷键支持 Ctrl/Alt/Shift/Win + 任意键（如 `Ctrl+N`、`F1`、`Space`、`Delete`）
 - **注意**：全局快捷键会拦截系统级按键（如全局注册 Ctrl+W 会让浏览器关标签失效），破坏性组合（Del、Ctrl+W 等）请用窗口内快捷键
 - fontZoom 必须包含至少一个修饰键 + `Wheel`，否则禁用（避免劫持普通滚轮）

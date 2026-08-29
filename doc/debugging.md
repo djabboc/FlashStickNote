@@ -115,9 +115,9 @@ UI 测试创建真实 Application、MainWindow、AvalonEdit、键盘焦点和 Di
 ### 列表导航与置顶
 
 - Ctrl+F 后搜索框应获得键盘焦点并全选已有内容。
-- Ctrl+B 后当前笔记的 `ListBoxItem` 必须存在并在视野中；若搜索过滤使它消失，SearchText 会被清空，这是定位语义而非数据修改。
+- Ctrl+B 后当前笔记的 `ListBoxItem` 必须存在、在视野中且获得键盘焦点；Up/Down 只应改变列表选中项，不能跳到搜索或菜单。再次按 Ctrl+B 必须回到记录的标题/正文编辑位置。若搜索过滤使它消失，SearchText 会被清空，这是定位语义而非数据修改。
 - 右键笔记项检查“置顶/取消置顶”文案与金色 `PIN` 标识；查看 conf.json 的 `pinnedNotes` 是否立即更新。
-- F2 在置顶笔记中回环。正文聚焦时，切换后 TextArea 仍应获得键盘焦点；txt/md 重命名后重启应用检查置顶是否保留。
+- F2 在置顶笔记中回环。正文聚焦时，切换后 TextArea 仍应获得键盘焦点；Ctrl+P 与右键均应立即更新 `pinnedNotes`。txt/md 重命名后重启应用检查置顶是否保留。
 ### 编辑器、撤销和光标
 
 每个 Note 有独立 AvalonEdit TextDocument；切换笔记必须复用文档，不能每次设置 TextEditor.Text，否则会清空撤销栈。验证：编辑 A，切到 B，再回 A，Ctrl+Z 应撤销 A。

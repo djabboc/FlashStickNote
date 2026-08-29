@@ -49,14 +49,14 @@ MainWindow 构造
 ### 快捷键分层（作用域原则）
 
 - **窗口相关 → 全局**（RegisterHotKey）：`toggleWindow`——窗口隐藏时也能唤出
-- **编辑相关 → 窗口内**（Window.InputBindings / 控件事件）：`newNote`（Ctrl+N）、`hideWindow`（Ctrl+W）、`fontZoom`（Ctrl+Wheel）、`focusSearch`（Ctrl+F）、`focusNoteList`（Ctrl+B）、`cyclePinnedNotes`（F2）、Del（列表 KeyDown）——只有焦点在 FlashStickNote 时生效
+- **编辑相关 → 窗口内**（Window.InputBindings / 控件事件）：`newNote`（Ctrl+N）、`hideWindow`（Ctrl+W）、`fontZoom`（Ctrl+Wheel）、`focusSearch`（Ctrl+F）、`focusNoteList`（Ctrl+B）、`cyclePinnedNotes`（F2）、`togglePin`（Ctrl+P）、Del（列表 KeyDown）——只有焦点在 FlashStickNote 时生效
 - 反面教训：曾把 `newNote`（Ctrl+N）注册为全局热键，导致在 VS Code 等任何程序按 Ctrl+N 都会创建笔记，已改为窗口内快捷键
 - 破坏性按键（Del/Ctrl+W 等）**不要**注册为全局，否则劫持所有应用
 
 ### 列表导航与置顶
 
-- `Ctrl+F` 直接聚焦 SearchBox 并全选；`Ctrl+B` 调用 `EnsureNoteVisible` 后再聚焦 NoteList。若 `ICollectionView` 的筛选隐藏了当前笔记，先清空 `SearchText`，否则滚动并不代表目标可见。
-- `F2` 由 ViewModel 选择下一条置顶笔记，Window 负责滚动和恢复 `Keyboard.FocusedElement`；因此选择变化不会把正文或标题输入焦点永久转移到列表。
+- `Ctrl+F` 直接聚焦 SearchBox 并全选；`Ctrl+B` 是双向切换：进入时调用 `EnsureNoteVisible` 并聚焦当前 `ListBoxItem`，再次按下恢复记录的标题/正文焦点。若 `ICollectionView` 的筛选隐藏了当前笔记，先清空 `SearchText`，否则滚动并不代表目标可见。
+- `F2` 由 ViewModel 选择下一条置顶笔记，Window 负责滚动和恢复 `Keyboard.FocusedElement`；Ctrl+P 与右键菜单复用同一置顶切换命令。列表的 Up/Down 在 PreviewKeyDown 中显式选择下一可见项并重新聚焦项容器，防止 WPF 方向导航逃到搜索或菜单。
 - `Note.IsPinned` 触发列表排序和配置写回。JSON 使用 `id:{Id}`，txt/md 使用 `file:{notesDir 相对路径}`；所有 Note 都订阅置顶/路径变化，文件重命名和删除会同步更新 `pinnedNotes`。
 ## 关键实现
 

@@ -249,6 +249,20 @@ public class MainViewModel : INotifyPropertyChanged
             return false;
         }
 
+        if (ReferenceEquals(note, SelectedNote))
+        {
+            Flush();
+        }
+
+        if (!note.IsPinned &&
+            string.IsNullOrEmpty(note.StoredFileName) &&
+            !note.IsEmpty &&
+            !_storage.Save(note))
+        {
+            Logger.Log($"置顶前保存笔记失败: {note.DisplayTitle}");
+            return false;
+        }
+
         note.IsPinned = !note.IsPinned;
         return true;
     }
