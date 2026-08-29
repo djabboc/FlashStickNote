@@ -11,6 +11,9 @@ public class ShortcutConfig
     public string HideWindow { get; set; } = "Ctrl+W";
     public string FontZoom { get; set; } = "Ctrl+Wheel";
     public string ToggleWordWrap { get; set; } = "Alt+Z";
+    public string FocusSearch { get; set; } = "Ctrl+F";
+    public string FocusNoteList { get; set; } = "Ctrl+B";
+    public string CyclePinnedNotes { get; set; } = "F2";
 }
 
 public class AppConfig
@@ -58,6 +61,7 @@ public class AppConfig
     public bool ShowTabs { get; set; } = false;
     public bool ShowEndOfLine { get; set; } = false;
     public bool ShowDocumentStatistics { get; set; } = false;
+    public List<string> PinnedNotes { get; set; } = [];
 
     [JsonPropertyName("showLineFeed")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

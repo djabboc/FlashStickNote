@@ -42,8 +42,8 @@ App
 | 入口 | App.xaml、App.xaml.cs | 日志、全局异常、单实例、自启动、静默启动、主窗口。 |
 | 视图 | MainWindow.xaml | 搜索、列表、GridSplitter、标题、正文、统计、菜单。 |
 | UI 胶水 | MainWindow.xaml.cs | 主题/配置、编辑器同步、HWND、托盘、快捷键、窗口状态、鼠标命中。 |
-| ViewModel | ViewModels/MainViewModel.cs | 笔记集合、选择、搜索、自动保存、监控和外部同步。 |
-| 模型 | Models/Note.cs | INotifyPropertyChanged、Id、标题、正文、时间、路径、预览、统计、空笔记判断。 |
+| ViewModel | ViewModels/MainViewModel.cs | 笔记集合、选择、搜索、置顶、自动保存、监控和外部同步。 |
+| 模型 | Models/Note.cs | INotifyPropertyChanged、Id、标题、正文、时间、路径、置顶、预览、统计、空笔记判断。 |
 | 服务 | Services/*.cs | 配置、主题、存储、搜索、统计、日志、图标、自启、热键。 |
 | 控件扩展 | Controls/*.cs | HTTP 链接、行剪切、AvalonEdit 按键修正、自绘光标。 |
 
@@ -64,9 +64,13 @@ App
 
 ConfigService 使用 System.Text.Json。conf.json 与 shortcut.json 位于 AppContext.BaseDirectory，序列化 camelCase、反序列化大小写不敏感；文件缺失自动生成，缺字段取属性默认值，解析失败记录日志并只在内存使用默认值。
 
-AppConfig 覆盖字体和有序回退、窗口矩形/记忆、笔记目录/格式、主题、显示、颜色、光标、滚动条、标题栏、自启和不可见字符。光标字段为 caretStyle、caretWidth、caretColor、caretOpacity、caretBlinkInterval；默认 opacity=0.8，默认 blink=530ms。
+AppConfig 覆盖字体和有序回退、窗口矩形/记忆、笔记目录/格式、置顶笔记引用、主题、显示、颜色、光标、滚动条、标题栏、自启和不可见字符。光标字段为 caretStyle、caretWidth、caretColor、caretOpacity、caretBlinkInterval；默认 opacity=0.8，默认 blink=530ms。
 
 ThemeService 内置 light、green、paper、dark 四套 ThemeColors，运行目录 theme/ 缺失时自动生成 JSON；主题控制窗口、列表、选中态、编辑区、行号、边框和分隔条。IconService 支持相对/绝对自定义图标，缺省时使用或提取内嵌 FlashStickNote.ico。
+
+### 列表导航与置顶
+
+MainWindow 的窗口内 InputBindings 处理 Ctrl+F、Ctrl+B 与 F2。ViewModel 保持 `IsPinned` 与排序，Window 承担 WPF 列表滚动和焦点恢复。`pinnedNotes` 使用 JSON 的稳定 Id 或 txt/md 相对路径；所有 Note 的 IsPinned/StoredFileName 变化均会写回配置，因此文本笔记改名不会丢失置顶状态。
 
 ## 本地文件存储
 
@@ -104,7 +108,7 @@ FileSystemWatcher 不递归子目录，recycle/ 事件忽略；事件回到 UI �
 |---|---|
 | 单实例 | Mutex + 命名 EventWaitHandle；第二实例通知已有窗口后退出，监听线程经 DispatcherPriority.ApplicationIdle 显示窗口。 |
 | 全局快捷键 | user32 RegisterHotKey/UnregisterHotKey；HotkeyManager 解析 Ctrl/Alt/Shift/Win 和常见键名，WM_HOTKEY 经 HwndSource hook。 |
-| 窗口内快捷键 | WPF InputBindings/KeyGesture；不抢占其他应用。 |
+| 窗口内快捷键 | WPF InputBindings/KeyGesture；Ctrl+F 搜索、Ctrl+B 列表定位、F2 置顶循环，均不抢占其他应用。 |
 | 托盘 | System.Windows.Forms.NotifyIcon。 |
 | 自启动 | Registry 写 HKCU\Software\Microsoft\Windows\CurrentVersion\Run。 |
 | 静默启动 | WindowInteropHelper.EnsureHandle 创建 HWND，不 Show/Hide。 |

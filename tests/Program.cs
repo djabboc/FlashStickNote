@@ -72,6 +72,11 @@ internal static class Program
         var serializedFontConfig = JsonSerializer.Serialize(defaultFontConfig, options);
         Assert(serializedFontConfig.Contains("\"fontFallbackFamilies\":[\"Microsoft JhengHei\",\"Arial\",\"Microsoft YaHei\"]", StringComparison.Ordinal),
             "Font fallback families should serialize as an ordered configuration array.");
+        var defaultShortcutConfig = new ShortcutConfig();
+        Assert(defaultShortcutConfig.FocusSearch == "Ctrl+F", "Ctrl+F should be the default search-focus shortcut.");
+        Assert(defaultShortcutConfig.FocusNoteList == "Ctrl+B", "Ctrl+B should be the default note-list shortcut.");
+        Assert(defaultShortcutConfig.CyclePinnedNotes == "F2", "F2 should be the default pinned-note cycle shortcut.");
+        Assert(new AppConfig().PinnedNotes.Count == 0, "Pinned-note configuration should default to an empty list.");
         var defaultCaretConfig = new AppConfig();
         Assert(defaultCaretConfig.CaretBlinkInterval == 530, "The default caret blink interval should be 530ms.");
         Assert(Math.Abs(defaultCaretConfig.CaretOpacity - 0.8) < 0.0001, "The default caret opacity should be 80%.");
@@ -197,6 +202,46 @@ internal static class Program
 
             var viewModel = (MainViewModel)window.DataContext;
             var editor = FindNamed<NoteTextEditor>(window, "ContentBox");
+            var searchBox = FindNamed<TextBox>(window, "SearchBox");
+
+            viewModel.NewNote();
+            var pinnedA = viewModel.SelectedNote ?? throw new InvalidOperationException("Pin test requires note A.");
+            pinnedA.Title = "Pinned A";
+            pinnedA.UpdatedAt = DateTime.Now.AddMinutes(-1);
+            viewModel.NewNote();
+            var pinnedB = viewModel.SelectedNote ?? throw new InvalidOperationException("Pin test requires note B.");
+            pinnedB.Title = "Pinned B";
+            viewModel.NewNote();
+            var normalNote = viewModel.SelectedNote ?? throw new InvalidOperationException("Pin test requires a normal note.");
+            normalNote.Title = "Normal note";
+            viewModel.TogglePin(pinnedB);
+            viewModel.TogglePin(pinnedA);
+            Assert(viewModel.Notes.Take(2).All(note => note.IsPinned), "Pinned notes must sort before ordinary notes.");
+            Assert(ConfigService.LoadConfig().PinnedNotes.Count == 2, "Pin changes must persist two note identifiers in configuration.");
+
+            viewModel.SelectedNote = normalNote;
+            viewModel.SearchText = "no matching note";
+            InvokePrivate(window, "FocusNoteList");
+            PumpDispatcher(TimeSpan.FromMilliseconds(50));
+            Assert(viewModel.SearchText == "", "Focusing the note list must clear a filter that hides the current note.");
+            Assert(noteList.IsKeyboardFocusWithin, "Ctrl+B behavior must move keyboard focus to the note list.");
+            Assert(noteList.ItemContainerGenerator.ContainerFromItem(normalNote) != null,
+                "Ctrl+B behavior must generate the current note's visible list item.");
+
+            searchBox.Text = "find me";
+            InvokePrivate(window, "FocusSearch");
+            Assert(searchBox.IsKeyboardFocused && searchBox.SelectedText == "find me",
+                "Ctrl+F behavior must focus and select the search text.");
+
+            viewModel.SelectedNote = pinnedA;
+            editor.Focus();
+            InvokePrivate(window, "CyclePinnedNotes");
+            PumpDispatcher(TimeSpan.FromMilliseconds(50));
+            Assert(ReferenceEquals(viewModel.SelectedNote, pinnedB), "F2 must cycle from the last pinned note to the first pinned note.");
+            Assert(editor.TextArea.IsKeyboardFocused, "F2 must retain editor focus after changing the selected pinned note.");
+            Assert(noteList.ItemContainerGenerator.ContainerFromItem(pinnedB) != null,
+                "F2 must scroll the target pinned note into the visible list range.");
+
             viewModel.NewNote();
             var undoNote = viewModel.SelectedNote ?? throw new InvalidOperationException("Undo test requires a selected note.");
             editor.Document.Insert(0, "Undo this text");
@@ -317,6 +362,12 @@ internal static class Program
 
     private static void WriteTestConfiguration(bool hideTitleBar, bool rememberWindowBounds = false)
     {
+        var notesDir = Path.Combine(Path.GetTempPath(), "FlashStickNote-WpfTests");
+        if (Directory.Exists(notesDir))
+        {
+            Directory.Delete(notesDir, true);
+        }
+
         var config = new AppConfig
         {
             AllowMultiInstance = true,
@@ -327,13 +378,18 @@ internal static class Program
             WindowLeft = 96,
             WindowTop = 84,
             RememberWindowBounds = rememberWindowBounds,
-            NotesDir = Path.Combine(Path.GetTempPath(), "FlashStickNote-WpfTests"),
+            NotesDir = notesDir,
         };
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "conf.json"), JsonSerializer.Serialize(config, options));
-        File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "shortcut.json"), "{\"toggleWindow\":\"Ctrl+Shift+F24\",\"newNote\":\"Ctrl+Shift+F23\",\"hideWindow\":\"Ctrl+Shift+F22\",\"fontZoom\":\"Ctrl+Wheel\",\"toggleWordWrap\":\"Alt+Z\"}");
+        var shortcuts = new ShortcutConfig
+        {
+            ToggleWindow = "Ctrl+Shift+F24",
+            NewNote = "Ctrl+Shift+F23",
+            HideWindow = "Ctrl+Shift+F22",
+        };
+        File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "shortcut.json"), JsonSerializer.Serialize(shortcuts, options));
     }
-
     private static bool GetCustomCaretVisibility(NoteTextEditor editor)
     {
         var renderer = typeof(NoteTextEditor).GetField("_caretRenderer", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(editor)

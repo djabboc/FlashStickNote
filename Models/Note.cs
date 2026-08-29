@@ -9,6 +9,8 @@ public class Note : INotifyPropertyChanged
 {
     private string _title = "";
     private string _content = "";
+    private bool _isPinned;
+    private string? _storedFileName;
 
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -45,8 +47,32 @@ public class Note : INotifyPropertyChanged
         }
     }
 
+    public bool IsPinned
+    {
+        get => _isPinned;
+        set
+        {
+            if (_isPinned != value)
+            {
+                _isPinned = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     [JsonIgnore]
-    public string? StoredFileName { get; set; }
+    public string? StoredFileName
+    {
+        get => _storedFileName;
+        set
+        {
+            if (!string.Equals(_storedFileName, value, StringComparison.OrdinalIgnoreCase))
+            {
+                _storedFileName = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     [JsonIgnore]
     public int PreviewLineCount { get; set; }

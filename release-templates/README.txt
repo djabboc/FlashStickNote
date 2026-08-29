@@ -20,7 +20,10 @@ FlashStickNote v%VERSION%
 5. Del           焦点在左侧列表时：删除选中笔记（移入回收站，弹窗可关）
 6. Ctrl+滚轮     编辑区字体缩放（自动保存到 conf.json）
 7. Alt+Z         窗口内：切换编辑区自动换行（自动保存到 conf.json）
-8. Ctrl+单击链接 用浏览器打开（仅识别 http/https）
+8. Ctrl+F        窗口内：聚焦搜索框
+9. Ctrl+B        窗口内：聚焦左侧列表并显示当前笔记
+10. F2           窗口内：在置顶笔记之间循环
+11. Ctrl+单击链接 用浏览器打开（仅识别 http/https）
 
 目录与文件
 ----------

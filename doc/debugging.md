@@ -112,6 +112,12 @@ UI 测试创建真实 Application、MainWindow、AvalonEdit、键盘焦点和 Di
 
 正在保存的当前笔记不应被 watcher 回读覆盖。外部同步异常时，首先对照日志、notesDir 与 recycle/ 路径，并确认当前运行目录。
 
+### 列表导航与置顶
+
+- Ctrl+F 后搜索框应获得键盘焦点并全选已有内容。
+- Ctrl+B 后当前笔记的 `ListBoxItem` 必须存在并在视野中；若搜索过滤使它消失，SearchText 会被清空，这是定位语义而非数据修改。
+- 右键笔记项检查“置顶/取消置顶”文案与金色 `PIN` 标识；查看 conf.json 的 `pinnedNotes` 是否立即更新。
+- F2 在置顶笔记中回环。正文聚焦时，切换后 TextArea 仍应获得键盘焦点；txt/md 重命名后重启应用检查置顶是否保留。
 ### 编辑器、撤销和光标
 
 每个 Note 有独立 AvalonEdit TextDocument；切换笔记必须复用文档，不能每次设置 TextEditor.Text，否则会清空撤销栈。验证：编辑 A，切到 B，再回 A，Ctrl+Z 应撤销 A。
@@ -127,8 +133,8 @@ UI 测试创建真实 Application、MainWindow、AvalonEdit、键盘焦点和 Di
 ### 窗口、托盘和快捷键
 
 - rememberWindowBounds=true：位置、尺寸、状态变化经 600ms 防抖写回；托盘“退出”立即保存；最大化保存 RestoreBounds。
-- toggleWindow 是 user32 RegisterHotKey 全局快捷键；newNote、hideWindow、fontZoom、toggleWordWrap 是窗口内 WPF 输入绑定，不能抢占其他应用。
-- 右键列表空白区不得改变选择或删除空草稿；笔记项右键才弹删除菜单。
+- toggleWindow 是 user32 RegisterHotKey 全局快捷键；newNote、hideWindow、fontZoom、toggleWordWrap、focusSearch、focusNoteList、cyclePinnedNotes 是窗口内 WPF 输入绑定，不能抢占其他应用。
+- 右键列表空白区不得改变选择或删除空草稿；笔记项右键才弹删除/置顶菜单。Ctrl+B 应使当前笔记可见；F2 切换置顶项后应保留原输入焦点。
 
 ## 日志和断点地图
 

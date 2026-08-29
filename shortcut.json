@@ -3,5 +3,8 @@
   "newNote": "Ctrl+N",
   "hideWindow": "Ctrl+W",
   "fontZoom": "Ctrl+Wheel",
-  "toggleWordWrap": "Alt+Z"
+  "toggleWordWrap": "Alt+Z",
+  "focusSearch": "Ctrl+F",
+  "focusNoteList": "Ctrl+B",
+  "cyclePinnedNotes": "F2"
 }

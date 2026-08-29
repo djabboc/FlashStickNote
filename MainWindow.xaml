@@ -137,6 +137,7 @@
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.ContextMenu>
                     <ContextMenu>
+                        <MenuItem x:Name="TogglePinMenuItem" Header="置顶" Click="TogglePinMenuItem_Click"/>
                         <MenuItem Header="删除" Click="DeleteContextMenuItem_Click"/>
                     </ContextMenu>
                 </ListBox.ContextMenu>
@@ -155,34 +156,75 @@
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Margin="2,6">
-                            <TextBlock Text="{Binding DisplayTitle}"
-                                       FontFamily="{DynamicResource Theme.ListTitleFontFamily}"
-                                       FontSize="{DynamicResource Theme.ListTitleFontSize}"
-                                       FontWeight="SemiBold"
-                                       TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding ContentPreview}"
-                                       FontFamily="{DynamicResource Theme.ListPreviewFontFamily}"
-                                       FontSize="{DynamicResource Theme.ListPreviewFontSize}"
-                                       TextWrapping="Wrap"
-                                       TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource Theme.ListSecondaryForeground}"
-                                       Margin="0,2,0,0">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Style.Triggers>
-                                            <Trigger Property="Text" Value="">
+                        <Border Margin="2,6"
+                                Padding="6,0,4,0">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="3,0,0,0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                            <Setter Property="BorderBrush" Value="#C68A00"/>
+                                            <Setter Property="Background" Value="#18C68A00"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding DisplayTitle}"
+                                               FontFamily="{DynamicResource Theme.ListTitleFontFamily}"
+                                               FontSize="{DynamicResource Theme.ListTitleFontSize}"
+                                               FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="PIN"
+                                               Margin="6,0,0,0"
+                                               Padding="4,1"
+                                               Background="#C68A00"
+                                               Foreground="White"
+                                               FontSize="10"
+                                               FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <TextBlock Text="{Binding UpdatedAt, StringFormat='{}{0:MM-dd HH:mm}'}"
-                                       FontSize="11"
-                                       Foreground="{DynamicResource Theme.ListTertiaryForeground}"
-                                       Margin="0,2,0,0"/>
-                        </StackPanel>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                                <TextBlock Text="{Binding ContentPreview}"
+                                           FontFamily="{DynamicResource Theme.ListPreviewFontFamily}"
+                                           FontSize="{DynamicResource Theme.ListPreviewFontSize}"
+                                           TextWrapping="Wrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource Theme.ListSecondaryForeground}"
+                                           Margin="0,2,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <Trigger Property="Text" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding UpdatedAt, StringFormat='{}{0:MM-dd HH:mm}'}"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource Theme.ListTertiaryForeground}"
+                                           Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

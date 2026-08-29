@@ -22,6 +22,7 @@
   "wordWrap": true,
   "theme": "light",
   "confirmDelete": true,
+  "pinnedNotes": [],
   "listTitleFontFamily": "",
   "listTitleFontSize": 13.0,
   "listPreviewFontFamily": "",

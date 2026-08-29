@@ -685,6 +685,9 @@ public partial class MainWindow : Window
         AddWindowShortcut(shortcut.NewNote, CreateNewNote, "新建笔记");
         AddWindowShortcut(shortcut.HideWindow, HideToTray, "隐藏到托盘");
         AddWindowShortcut(shortcut.ToggleWordWrap, ToggleWordWrap, "切换自动换行");
+        AddWindowShortcut(shortcut.FocusSearch, FocusSearch, "聚焦搜索");
+        AddWindowShortcut(shortcut.FocusNoteList, FocusNoteList, "聚焦笔记列表");
+        AddWindowShortcut(shortcut.CyclePinnedNotes, CyclePinnedNotes, "切换置顶笔记");
     }
 
     private void ToggleWordWrap()
@@ -728,6 +731,55 @@ public partial class MainWindow : Window
         }
     }
 
+    private void FocusSearch()
+    {
+        SearchBox.Focus();
+        SearchBox.SelectAll();
+    }
+
+    private void FocusNoteList()
+    {
+        if (DataContext is MainViewModel vm && vm.SelectedNote != null)
+        {
+            EnsureNoteVisible(vm.SelectedNote);
+        }
+
+        NoteList.Focus();
+    }
+
+    private void CyclePinnedNotes()
+    {
+        if (DataContext is not MainViewModel vm)
+        {
+            return;
+        }
+
+        var focusedElement = System.Windows.Input.Keyboard.FocusedElement;
+        var next = vm.SelectNextPinnedNote();
+        if (next == null)
+        {
+            return;
+        }
+
+        EnsureNoteVisible(next);
+        if (focusedElement != null)
+        {
+            System.Windows.Input.Keyboard.Focus(focusedElement);
+        }
+    }
+
+    private void EnsureNoteVisible(Note note)
+    {
+        if (!NoteList.Items.Contains(note) && DataContext is MainViewModel vm)
+        {
+            vm.SearchText = "";
+        }
+
+        NoteList.UpdateLayout();
+        NoteList.ScrollIntoView(note);
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,
+            new Action(() => NoteList.ScrollIntoView(note)));
+    }
     private void NoteList_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key != System.Windows.Input.Key.Delete)
@@ -767,9 +819,14 @@ public partial class MainWindow : Window
         if (!CanOpenNoteContextMenu(_rightClickedNoteItem))
         {
             e.Handled = true;
+            return;
+        }
+
+        if (DataContext is MainViewModel vm)
+        {
+            TogglePinMenuItem.Header = vm.SelectedNote?.IsPinned == true ? "取消置顶" : "置顶";
         }
     }
-
     internal static bool CanOpenNoteContextMenu(System.Windows.Controls.ListBoxItem? item)
         => item != null;
 
@@ -787,8 +844,16 @@ public partial class MainWindow : Window
 
         return null;
     }
-
     private void DeleteContextMenuItem_Click(object sender, RoutedEventArgs e) => DeleteSelectedWithConfirm();
+    private void TogglePinMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm &&
+            vm.TogglePin(vm.SelectedNote) &&
+            vm.SelectedNote != null)
+        {
+            EnsureNoteVisible(vm.SelectedNote);
+        }
+    }
 
     private void DeleteSelectedWithConfirm()
     {

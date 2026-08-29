@@ -13,6 +13,7 @@ namespace FlashStickNote.ViewModels;
 
 public class MainViewModel : INotifyPropertyChanged
 {
+    private readonly AppConfig _appConfig;
     private readonly NoteStorage _storage;
     private readonly DispatcherTimer _saveTimer;
     private readonly DispatcherTimer _reloadTimer;
@@ -124,19 +125,21 @@ public class MainViewModel : INotifyPropertyChanged
             ProcessReloadQueue();
         };
 
-        _listContentLines = ConfigService.LoadConfig().ListContentLines;
-
+        _appConfig = ConfigService.LoadConfig();
+        _listContentLines = _appConfig.ListContentLines;
         foreach (var note in storage.LoadAll())
         {
             note.PreviewLineCount = _listContentLines;
+            note.IsPinned |= IsPinnedInConfig(note);
+            AttachNote(note);
             Notes.Add(note);
         }
 
+        SortPinnedNotes();
         SelectedNote = Notes.FirstOrDefault();
         _notesView = CollectionViewSource.GetDefaultView(Notes);
         InitWatcher();
     }
-
     private void RefreshFilter()
     {
         if (_notesView == null)
@@ -172,6 +175,96 @@ public class MainViewModel : INotifyPropertyChanged
         RefreshFilter();
     }
 
+    private bool IsPinnedInConfig(Note note)
+    {
+        var key = GetPinKey(note);
+        return _appConfig.PinnedNotes.Any(value =>
+            string.Equals(value, key, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(value, note.StoredFileName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string? GetPinKey(Note note)
+    {
+        if (string.IsNullOrWhiteSpace(note.StoredFileName))
+        {
+            return null;
+        }
+
+        return Path.GetExtension(note.StoredFileName).Equals(".json", StringComparison.OrdinalIgnoreCase)
+            ? $"id:{note.Id}"
+            : $"file:{Path.GetRelativePath(_storage.Dir, note.StoredFileName).Replace('\\', '/')}";
+    }
+
+    private void AttachNote(Note note) => note.PropertyChanged += OnPinnedNotePropertyChanged;
+
+    private void DetachNote(Note note) => note.PropertyChanged -= OnPinnedNotePropertyChanged;
+
+    private void OnPinnedNotePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is not Note note || e.PropertyName is not (nameof(Note.IsPinned) or nameof(Note.StoredFileName)))
+        {
+            return;
+        }
+
+        if (e.PropertyName == nameof(Note.IsPinned))
+        {
+            SortPinnedNotes();
+        }
+
+        PersistPinnedNotes();
+    }
+
+    private void SortPinnedNotes()
+    {
+        var ordered = Notes
+            .OrderByDescending(note => note.IsPinned)
+            .ThenByDescending(note => note.UpdatedAt)
+            .ToList();
+        for (var index = 0; index < ordered.Count; index++)
+        {
+            var current = Notes.IndexOf(ordered[index]);
+            if (current != index)
+            {
+                Notes.Move(current, index);
+            }
+        }
+    }
+
+    private void PersistPinnedNotes()
+    {
+        _appConfig.PinnedNotes = Notes
+            .Where(note => note.IsPinned)
+            .Select(GetPinKey)
+            .Where(key => key != null)
+            .Cast<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        ConfigService.SaveConfig(_appConfig);
+    }
+
+    public bool TogglePin(Note? note)
+    {
+        if (note == null)
+        {
+            return false;
+        }
+
+        note.IsPinned = !note.IsPinned;
+        return true;
+    }
+
+    public Note? SelectNextPinnedNote()
+    {
+        var pins = Notes.Where(note => note.IsPinned).ToList();
+        if (pins.Count == 0)
+        {
+            return null;
+        }
+
+        var index = pins.IndexOf(SelectedNote!);
+        SelectedNote = pins[(index + 1) % pins.Count];
+        return SelectedNote;
+    }
     private void InitWatcher()
     {
         try
@@ -460,7 +553,9 @@ public class MainViewModel : INotifyPropertyChanged
             }
 
             note.PreviewLineCount = _listContentLines;
-            Notes.Insert(0, note);
+            note.IsPinned |= IsPinnedInConfig(note);
+            AttachNote(note);
+            Notes.Insert(Notes.TakeWhile(item => item.IsPinned).Count(), note);
             _loadFailures.Remove(path);
             Logger.Log($"检测到外部新增笔记: {Path.GetFileName(path)}");
             return true;
@@ -505,6 +600,11 @@ public class MainViewModel : INotifyPropertyChanged
             }
 
             Notes.Remove(note);
+            DetachNote(note);
+            if (note.IsPinned)
+            {
+                PersistPinnedNotes();
+            }
             Logger.Log($"检测到外部删除笔记: {Path.GetFileName(path)}");
 
             if (wasSelected && Notes.Count > 0)
@@ -539,7 +639,8 @@ public class MainViewModel : INotifyPropertyChanged
     {
         var note = _storage.Create();
         note.PreviewLineCount = _listContentLines;
-        Notes.Insert(0, note);
+        AttachNote(note);
+        Notes.Insert(Notes.TakeWhile(item => item.IsPinned).Count(), note);
         SelectedNote = note;
     }
 
@@ -559,6 +660,11 @@ public class MainViewModel : INotifyPropertyChanged
 
         SelectedNote = null;
         Notes.Remove(note);
+        DetachNote(note);
+        if (note.IsPinned)
+        {
+            PersistPinnedNotes();
+        }
         if (Notes.Count > 0)
         {
             SelectedNote = Notes[Math.Min(Math.Max(index, 0), Notes.Count - 1)];
@@ -603,6 +709,11 @@ public class MainViewModel : INotifyPropertyChanged
         if (_selectedNote != null)
         {
             _selectedNote.PropertyChanged -= OnNotePropertyChanged;
+        }
+
+        foreach (var note in Notes)
+        {
+            DetachNote(note);
         }
     }
 

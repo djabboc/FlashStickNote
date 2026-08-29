@@ -39,6 +39,7 @@
 
   "theme": "light",                      // 主题名，对应 theme/{name}.json
   "confirmDelete": true,                 // 删除笔记前弹窗确认
+  "pinnedNotes": [],                     // 置顶笔记引用；由程序维护（JSON=id:，txt/md=file:）
   "icon": "",                            // 图标文件（相对 exe 或绝对路径），空=默认闪电图标
 
   "startWithWindows": false,             // 开机启动（注册表 HKCU Run 键）
@@ -72,6 +73,8 @@
 
 `windowLeft` 和 `windowTop` 必须同时为数值才按绝对坐标启动；任一为 `null` 时居中启动。`rememberWindowBounds=true`（默认）时，窗口停止移动、缩放或切换状态约 600ms 后会写回最后一次普通窗口矩形；托盘菜单的“退出”会立即写回。最大化状态保存其还原后的矩形。设为 `false` 可固定使用配置中的默认矩形；无效尺寸会回退至最小窗口大小。
 
+“`pinnedNotes`”通常不需要手工编辑。程序在置顶、取消置顶、重命名和删除时立即写回：JSON 使用笔记自身的 `id:` 作为稳定键；txt/md 使用相对于 `notesDir` 的 `file:` 键，并在文件重命名后更新。旧版保存的绝对路径仍会读取，下一次置顶状态变更会规范化为新格式。
+
 AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾标记显示，因此使用 `showEndOfLine` 统一控制。旧配置中的 `showLineFeed` 或 `showCarriageReturn` 仍可读取并自动迁移为开启状态；下次应用保存配置时会写成新字段。
 
 `showDocumentStatistics=true` 时，编辑区底部显示当前笔记正文的统计信息。行数按 CRLF、CR 或 LF 作为一次逻辑换行计算；字数统计非空白字符，空格、制表符和换行不计入。
@@ -86,11 +89,14 @@ AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾�
   "newNote": "Ctrl+N",              // 窗口内：新建笔记（编辑相关→仅本程序获得焦点时生效）
   "hideWindow": "Ctrl+W",           // 窗口内：仅隐藏到托盘
   "fontZoom": "Ctrl+Wheel",         // 窗口内：字体缩放（支持 Ctrl/Alt/Shift + Wheel）
-  "toggleWordWrap": "Alt+Z"         // 窗口内：切换自动换行（结果写回 conf.json 的 wordWrap）
+  "toggleWordWrap": "Alt+Z",        // 窗口内：切换自动换行（结果写回 conf.json 的 wordWrap）
+  "focusSearch": "Ctrl+F",          // 窗口内：聚焦搜索框并全选搜索词
+  "focusNoteList": "Ctrl+B",          // 窗口内：聚焦笔记列表并显示当前笔记
+  "cyclePinnedNotes": "F2"            // 窗口内：在置顶笔记之间循环
 }
 ```
 
-- 作用域原则：**窗口相关**（toggleWindow）注册为全局热键；**编辑相关**（newNote/hideWindow/fontZoom）只在 FlashStickNote 窗口内生效，不会在 VS Code 等其他程序里误触发
+- 作用域原则：**窗口相关**（toggleWindow）注册为全局热键；**编辑相关**（newNote/hideWindow/fontZoom/focusSearch/focusNoteList/cyclePinnedNotes）只在 FlashStickNote 窗口内生效，不会在 VS Code 等其他程序里误触发
 - 全局快捷键支持 Ctrl/Alt/Shift/Win + 任意键（如 `Ctrl+N`、`F1`、`Space`、`Delete`）
 - **注意**：全局快捷键会拦截系统级按键（如全局注册 Ctrl+W 会让浏览器关标签失效），破坏性组合（Del、Ctrl+W 等）请用窗口内快捷键
 - fontZoom 必须包含至少一个修饰键 + `Wheel`，否则禁用（避免劫持普通滚轮）
