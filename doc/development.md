@@ -41,8 +41,8 @@ MainWindow 构造
 - txt/md rename saves write a temporary file in the notes directory before replacing the target. The old file is deleted only after the new content is durable; a failed save retains the old file and `StoredFileName`.
 - A note leaves the list only after a successful move to the recycle directory. Failed moves preserve the selection and show a warning.
 - Watcher-triggered reads run off the UI thread. Watcher errors recreate the watcher and reconcile the directory; window shutdown disposes watchers and timers.
-- A delete event is confirmed only after a 450ms debounce and a second file-existence check. Atomic replacement and sync-directory delete/create bursts must never be interpreted as an external note deletion.
-- Each note owns an AvalonEdit `TextDocument`; switching notes reuses that document so its undo and redo history remains available when returning to the note.
+- A delete event is confirmed only after a 450ms debounce and a second file-existence check. Atomic replacement writes a temporary file and then replaces the target; cloud-synced directories can also report a short delete/create burst for one unchanged path. The previous immediate delete handler removed the selected note before the matching create event arrived, which selected the next note in the list. These transient events must never be interpreted as an external note deletion.
+- Each note owns an AvalonEdit `TextDocument`; switching notes reuses that document so its undo and redo history remains available when returning to the note. Assigning `TextEditor.Text` on every selection change replaces document content and clears its undo stack, which was why Ctrl+Z no longer worked after returning to a note.
 - `Directory.Build.props` clears inherited NuGet fallback folders so builds do not depend on a local Visual Studio installation path.
 
 ### 快捷键分层（作用域原则）
