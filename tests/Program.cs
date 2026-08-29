@@ -161,6 +161,21 @@ internal static class Program
             Assert(!MainWindow.CanOpenNoteContextMenu(null), "Right-clicking blank list space must not open the note context menu.");
 
             var viewModel = (MainViewModel)window.DataContext;
+            var editor = FindNamed<NoteTextEditor>(window, "ContentBox");
+            viewModel.NewNote();
+            var undoNote = viewModel.SelectedNote ?? throw new InvalidOperationException("Undo test requires a selected note.");
+            editor.Document.Insert(0, "Undo this text");
+            Assert(undoNote.Content == "Undo this text", "Editing note A should update its content.");
+
+            var otherUndoNote = new Note { Title = "Undo target" };
+            viewModel.Notes.Add(otherUndoNote);
+            viewModel.SelectedNote = otherUndoNote;
+            editor.Document.Insert(0, "Other note text");
+            viewModel.SelectedNote = undoNote;
+            editor.Undo();
+            Assert(editor.Text == "", "Undo history must survive switching away from and back to a note.");
+            Assert(undoNote.Content == "", "Undo after returning must update the original note.");
+
             viewModel.NewNote();
             var emptyDraft = viewModel.SelectedNote ?? throw new InvalidOperationException("New note should select an empty draft.");
             var noteCount = viewModel.Notes.Count;
