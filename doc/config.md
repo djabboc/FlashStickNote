@@ -50,13 +50,18 @@
   "titleColor": "",                      // 标题框文字颜色（如 "#FF0000"）
   "contentFontFamily": "",               // 内容框字体
   "contentColor": "",                    // 内容框文字颜色
-  "linkColor": ""                        // 超链接颜色（默认蓝色）
+  "linkColor": "",                       // 超链接颜色（默认蓝色）
+  "caretStyle": "line",                  // 正文光标：line | block | underline
+  "caretWidth": 2.0,                       // line/underline 的粗细（1-12）
+  "caretColor": ""                       // 正文光标颜色；留空跟随正文/主题
 }
 ```
 
 AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾标记显示，因此使用 `showEndOfLine` 统一控制。旧配置中的 `showLineFeed` 或 `showCarriageReturn` 仍可读取并自动迁移为开启状态；下次应用保存配置时会写成新字段。
 
 `showDocumentStatistics=true` 时，编辑区底部显示当前笔记正文的统计信息。行数按 CRLF、CR 或 LF 作为一次逻辑换行计算；字数统计非空白字符，空格、制表符和换行不计入。
+
+`caretStyle` 默认 `line`，可选 `block` 或 `underline`；未知值回退为 `line`。`caretWidth` 限制为 1-12；`caretColor` 留空时跟随 `contentColor`，仍为空则跟随主题正文颜色。
 
 ## shortcut.json（全部快捷键及默认值）
 

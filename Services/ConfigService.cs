@@ -37,6 +37,9 @@ public class AppConfig
     public string ContentFontFamily { get; set; } = "";
     public string ContentColor { get; set; } = "";
     public string LinkColor { get; set; } = "";
+    public string CaretStyle { get; set; } = "line";
+    public double CaretWidth { get; set; } = 2.0;
+    public string CaretColor { get; set; } = "";
     public string Icon { get; set; } = "";
     public bool StartWithWindows { get; set; } = false;
     public bool SilentStart { get; set; } = false;

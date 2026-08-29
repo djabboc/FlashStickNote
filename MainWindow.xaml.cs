@@ -221,7 +221,8 @@ public partial class MainWindow : Window
             ?? System.Windows.Media.Brushes.DodgerBlue;
         ContentBox.TextArea.TextView.LinkTextUnderline = true;
 
-        if (ParseBrush(conf.ContentColor) is { } contentBrush)
+        var contentBrush = ParseBrush(conf.ContentColor);
+        if (contentBrush != null)
         {
             ContentBox.Foreground = contentBrush;
             ContentBox.TextArea.Caret.CaretBrush = contentBrush;
@@ -230,6 +231,9 @@ public partial class MainWindow : Window
         {
             ContentBox.TextArea.Caret.CaretBrush = editorForeground;
         }
+
+        ContentBox.ConfigureCaret(conf.CaretStyle, conf.CaretWidth,
+            ParseBrush(conf.CaretColor) ?? contentBrush ?? editorForeground);
     }
 
     private void InitEditor()
