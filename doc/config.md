@@ -63,7 +63,8 @@
   "linkColor": "",                       // 超链接颜色（默认蓝色）
   "caretStyle": "line",                  // 正文光标：line | block | underline
   "caretWidth": 2.0,                       // line/underline 的粗细（1-12）
-  "caretColor": ""                       // 正文光标颜色；留空跟随正文/主题
+  "caretColor": "",                      // 正文光标颜色；留空跟随正文/主题
+  "caretBlinkInterval": 530              // 闪烁间隔（毫秒）；0 表示常亮
 }
 ```
 `fontFamily` 是首选字体；`fontFallbackFamilies` 是有序回退列表。WPF 会优先使用首选字体，并在字体未安装或当前字符没有字形时依次回退。默认顺序为 Lucida Fax、Microsoft JhengHei、Arial、Microsoft YaHei。标题、正文和列表的单独字体配置仍可使用，且会共享该回退列表；`fontFamily` 和这些单独字体字段也兼容逗号分隔的字体名。
@@ -74,7 +75,7 @@ AvalonEdit 将 Windows 的 `\r\n` 视为一个行结束单元并以单一行尾�
 
 `showDocumentStatistics=true` 时，编辑区底部显示当前笔记正文的统计信息。行数按 CRLF、CR 或 LF 作为一次逻辑换行计算；字数统计非空白字符，空格、制表符和换行不计入。
 
-`caretStyle` 默认 `line`，可选 `block` 或 `underline`；未知值回退为 `line`。`caretWidth` 限制为 1-12；`caretColor` 留空时跟随 `contentColor`，仍为空则跟随主题正文颜色。
+`caretStyle` 默认 `line`，可选 `block` 或 `underline`；未知值回退为 `line`。`caretWidth` 限制为 1-12；`caretColor` 留空时跟随 `contentColor`，仍为空则跟随主题正文颜色。`caretBlinkInterval` 默认 530ms，`0` 表示常亮，其他值限制在 100-2000ms；光标移动或重新获得焦点时立即显示并重新开始计时。
 
 ## shortcut.json（全部快捷键及默认值）
 

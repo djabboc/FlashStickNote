@@ -3,6 +3,7 @@ using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Rendering;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Key = System.Windows.Input.Key;
 using Keyboard = System.Windows.Input.Keyboard;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -13,17 +14,25 @@ namespace FlashStickNote.Controls;
 public sealed class NoteTextEditor : TextEditor
 {
     private readonly CaretRenderer _caretRenderer;
+    private readonly DispatcherTimer _caretBlinkTimer;
+    private bool _caretBlinkEnabled = true;
 
     public NoteTextEditor()
     {
         _caretRenderer = new CaretRenderer(TextArea);
         TextArea.TextView.BackgroundRenderers.Add(_caretRenderer);
-        TextArea.Caret.PositionChanged += (_, _) => RedrawCaret();
-        GotKeyboardFocus += (_, _) => RedrawCaret();
-        LostKeyboardFocus += (_, _) => RedrawCaret();
+        _caretBlinkTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(530) };
+        _caretBlinkTimer.Tick += (_, _) =>
+        {
+            _caretRenderer.IsVisible = !_caretRenderer.IsVisible;
+            RedrawCaret();
+        };
+        TextArea.Caret.PositionChanged += (_, _) => RestartCaretBlink();
+        GotKeyboardFocus += (_, _) => RestartCaretBlink();
+        LostKeyboardFocus += (_, _) => StopCaretBlink();
     }
 
-    public void ConfigureCaret(string? style, double width, System.Windows.Media.Brush brush)
+    public void ConfigureCaret(string? style, double width, System.Windows.Media.Brush brush, int blinkInterval)
     {
         _caretRenderer.Style = style?.Trim().ToLowerInvariant() switch
         {
@@ -34,6 +43,40 @@ public sealed class NoteTextEditor : TextEditor
         _caretRenderer.Width = Math.Clamp(width, 1.0, 12.0);
         _caretRenderer.Brush = brush;
         TextArea.Caret.CaretBrush = System.Windows.Media.Brushes.Transparent;
+        ConfigureCaretBlink(blinkInterval);
+    }
+
+    public static int NormalizeCaretBlinkInterval(int interval)
+        => interval <= 0 ? 0 : Math.Clamp(interval, 100, 2000);
+
+    private void ConfigureCaretBlink(int interval)
+    {
+        var normalized = NormalizeCaretBlinkInterval(interval);
+        _caretBlinkEnabled = normalized > 0;
+        if (_caretBlinkEnabled)
+        {
+            _caretBlinkTimer.Interval = TimeSpan.FromMilliseconds(normalized);
+        }
+
+        RestartCaretBlink();
+    }
+
+    private void RestartCaretBlink()
+    {
+        _caretBlinkTimer.Stop();
+        _caretRenderer.IsVisible = true;
+        if (_caretBlinkEnabled && TextArea.IsKeyboardFocused)
+        {
+            _caretBlinkTimer.Start();
+        }
+
+        RedrawCaret();
+    }
+
+    private void StopCaretBlink()
+    {
+        _caretBlinkTimer.Stop();
+        _caretRenderer.IsVisible = false;
         RedrawCaret();
     }
 
@@ -93,9 +136,11 @@ public sealed class NoteTextEditor : TextEditor
 
         public System.Windows.Media.Brush Brush { get; set; } = System.Windows.Media.Brushes.Black;
 
+        public bool IsVisible { get; set; } = true;
+
         public void Draw(TextView textView, DrawingContext drawingContext)
         {
-            if (!_textArea.IsKeyboardFocused || !textView.VisualLinesValid)
+            if (!IsVisible || !_textArea.IsKeyboardFocused || !textView.VisualLinesValid)
             {
                 return;
             }

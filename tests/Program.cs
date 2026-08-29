@@ -72,6 +72,11 @@ internal static class Program
         var serializedFontConfig = JsonSerializer.Serialize(defaultFontConfig, options);
         Assert(serializedFontConfig.Contains("\"fontFallbackFamilies\":[\"Microsoft JhengHei\",\"Arial\",\"Microsoft YaHei\"]", StringComparison.Ordinal),
             "Font fallback families should serialize as an ordered configuration array.");
+        var defaultCaretConfig = new AppConfig();
+        Assert(defaultCaretConfig.CaretBlinkInterval == 530, "The default caret blink interval should be 530ms.");
+        Assert(NoteTextEditor.NormalizeCaretBlinkInterval(0) == 0, "A zero caret blink interval should keep the caret visible.");
+        Assert(NoteTextEditor.NormalizeCaretBlinkInterval(40) == 100, "Positive caret blink intervals should have a usable lower bound.");
+        Assert(NoteTextEditor.NormalizeCaretBlinkInterval(2400) == 2000, "Caret blink intervals should have an upper bound.");
 
         Assert(DocumentStatisticsCalculator.Calculate("") == new DocumentStatistics(0, 0), "Empty content should have zero lines and characters.");
         var mixedLineEndings = DocumentStatisticsCalculator.Calculate("abc\r\n你好 \t!\rb\n");
@@ -213,7 +218,9 @@ internal static class Program
 
             var otherNote = new Note { Title = "Context target" };
             viewModel.Notes.Add(otherNote);
+            noteList.ScrollIntoView(otherNote);
             window.UpdateLayout();
+            PumpDispatcher(TimeSpan.FromMilliseconds(100));
             var otherItem = (ListBoxItem?)noteList.ItemContainerGenerator.ContainerFromItem(otherNote)
                 ?? throw new InvalidOperationException("The context-menu target must have a list item.");
             var rightClick = new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Right)
@@ -226,6 +233,20 @@ internal static class Program
             viewModel.SelectedNote = otherNote;
             Assert(viewModel.Notes.Contains(emptyDraft), "Right-clicking another note must not remove an empty draft.");
             Assert(ReferenceEquals(viewModel.SelectedNote, otherNote), "Selecting a context-menu target must keep that target selected.");
+
+            editor.ConfigureCaret("line", 2, Brushes.Black, 100);
+            editor.Focus();
+            Assert(editor.TextArea.IsKeyboardFocused, "The caret blink test requires editor keyboard focus.");
+            PumpDispatcher(TimeSpan.FromMilliseconds(170));
+            Assert(!GetCustomCaretVisibility(editor), "A focused caret with a 100ms interval should become hidden after one timer tick.");
+
+            editor.Document.Insert(0, "Blink");
+            editor.TextArea.Caret.Offset = editor.Document.TextLength;
+            Assert(GetCustomCaretVisibility(editor), "Moving the caret should make it visible immediately.");
+
+            editor.ConfigureCaret("line", 2, Brushes.Black, 0);
+            PumpDispatcher(TimeSpan.FromMilliseconds(170));
+            Assert(GetCustomCaretVisibility(editor), "A zero caret blink interval should keep the focused caret visible.");
         }
         finally
         {
@@ -306,6 +327,16 @@ internal static class Program
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "conf.json"), JsonSerializer.Serialize(config, options));
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "shortcut.json"), "{\"toggleWindow\":\"Ctrl+Shift+F24\",\"newNote\":\"Ctrl+Shift+F23\",\"hideWindow\":\"Ctrl+Shift+F22\",\"fontZoom\":\"Ctrl+Wheel\",\"toggleWordWrap\":\"Alt+Z\"}");
     }
+
+    private static bool GetCustomCaretVisibility(NoteTextEditor editor)
+    {
+        var renderer = typeof(NoteTextEditor).GetField("_caretRenderer", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(editor)
+            ?? throw new InvalidOperationException("The editor must keep its custom caret renderer.");
+        var isVisible = renderer.GetType().GetProperty("IsVisible", BindingFlags.Instance | BindingFlags.Public)?.GetValue(renderer)
+            ?? throw new InvalidOperationException("The custom caret renderer must expose its visibility.");
+        return (bool)isVisible;
+    }
+
 
     private static T FindNamed<T>(FrameworkElement root, string name) where T : FrameworkElement
         => root.FindName(name) as T ?? throw new InvalidOperationException($"Missing named element: {name}");
