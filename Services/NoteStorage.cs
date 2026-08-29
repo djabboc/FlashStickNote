@@ -229,65 +229,95 @@ public class NoteStorage
 
     public Note Create() => new Note();
 
-    public void Save(Note note)
+    public bool Save(Note note)
     {
-        note.UpdatedAt = DateTime.Now;
-
         if (note.IsEmpty)
         {
-            if (note.StoredFileName != null && File.Exists(note.StoredFileName))
+            var emptyPath = note.StoredFileName;
+            if (string.IsNullOrEmpty(emptyPath) || !File.Exists(emptyPath))
+            {
+                note.StoredFileName = null;
+                return true;
+            }
+
+            try
+            {
+                File.Delete(emptyPath);
+                MarkSelfWrite(emptyPath);
+                note.StoredFileName = null;
+                Logger.Log($"Empty note file deleted: {emptyPath}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Failed to delete empty note file: {emptyPath} ({ex.Message})");
+                return false;
+            }
+        }
+
+        var originalPath = note.StoredFileName;
+        var format = originalPath != null ? FormatOfPath(originalPath) : null;
+        format = string.IsNullOrEmpty(format) ? _defaultFormat : format;
+        note.UpdatedAt = DateTime.Now;
+        var newPath = format == "json" ? GetJsonPath(note) : BuildPlainPath(note, format);
+        var text = format == "json"
+            ? JsonSerializer.Serialize(note, Options)
+            : FormatPlain(note);
+        var tempPath = Path.Combine(
+            _dir,
+            $".{Path.GetFileName(newPath)}.{Guid.NewGuid():N}.tmp");
+
+        try
+        {
+            File.WriteAllText(tempPath, text);
+            File.Move(tempPath, newPath, true);
+            note.StoredFileName = newPath;
+            MarkSelfWrite(newPath);
+
+            if (!string.IsNullOrEmpty(originalPath) &&
+                !string.Equals(originalPath, newPath, StringComparison.OrdinalIgnoreCase) &&
+                File.Exists(originalPath))
             {
                 try
                 {
-                    File.Delete(note.StoredFileName);
-                    Logger.Log($"空笔记已删除文件: {note.StoredFileName}");
+                    File.Delete(originalPath);
+                    MarkSelfWrite(originalPath);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Log($"New note saved but old file remains: {originalPath} ({ex.Message})");
                 }
             }
 
-            note.StoredFileName = null;
-            return;
+            return true;
         }
-
-        var format = note.StoredFileName != null ? FormatOfPath(note.StoredFileName) : null;
-        format = string.IsNullOrEmpty(format) ? _defaultFormat : format;
-
-        note.UpdatedAt = DateTime.Now;
-        var newPath = format == "json" ? GetJsonPath(note) : BuildPlainPath(note, format);
-
-        if (note.StoredFileName != null &&
-            !string.Equals(note.StoredFileName, newPath, StringComparison.OrdinalIgnoreCase))
+        catch (Exception ex)
+        {
+            Logger.Log($"Failed to save note: {Path.GetFileName(newPath)} ({ex.Message})");
+            return false;
+        }
+        finally
         {
             try
             {
-                File.Delete(note.StoredFileName);
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
             }
             catch
             {
             }
         }
-
-        if (format == "json")
-        {
-            File.WriteAllText(newPath, JsonSerializer.Serialize(note, Options));
-        }
-        else
-        {
-            File.WriteAllText(newPath, FormatPlain(note));
-        }
-
-        note.StoredFileName = newPath;
-        MarkSelfWrite(newPath);
     }
 
-    public void Delete(Note note)
+    public bool Delete(Note note)
     {
         var path = note.StoredFileName;
         if (string.IsNullOrEmpty(path) || !File.Exists(path))
         {
-            return;
+            note.StoredFileName = null;
+            return true;
         }
 
         Directory.CreateDirectory(_recycleDir);
@@ -306,20 +336,28 @@ public class NoteStorage
         {
             File.Move(path, dest);
             note.StoredFileName = null;
-            Logger.Log($"笔记已移入回收站: {name}");
+            MarkSelfWrite(path);
+            MarkSelfWrite(dest);
+            Logger.Log($"Note moved to recycle: {name}");
+            return true;
         }
         catch (Exception ex)
         {
-            Logger.Log($"移入回收站失败，尝试复制后删除: {ex.Message}");
+            Logger.Log($"Recycle move failed, attempting copy/delete: {ex.Message}");
             try
             {
                 File.Copy(path, dest);
                 File.Delete(path);
                 note.StoredFileName = null;
-                Logger.Log($"笔记已复制入回收站: {name}");
+                MarkSelfWrite(path);
+                MarkSelfWrite(dest);
+                Logger.Log($"Note copied to recycle: {name}");
+                return true;
             }
-            catch
+            catch (Exception fallbackEx)
             {
+                Logger.Log($"Failed to recycle note: {name} ({fallbackEx.Message})");
+                return false;
             }
         }
     }

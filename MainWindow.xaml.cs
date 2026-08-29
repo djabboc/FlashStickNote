@@ -658,7 +658,14 @@ public partial class MainWindow : Window
             }
         }
 
-        vm.DeleteSelected();
+        if (!vm.DeleteSelected())
+        {
+            System.Windows.MessageBox.Show(
+                "The note could not be moved to the recycle directory. It remains in the list.",
+                "FlashStickNote",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
     }
 
     protected override void OnSourceInitialized(EventArgs e)

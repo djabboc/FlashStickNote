@@ -19,6 +19,7 @@ internal static class Program
         try
         {
             RunLogicTests();
+            RunStorageTests();
             RunWindowInteractionTests();
             Console.WriteLine("All FlashStickNote tests passed.");
             return 0;
@@ -68,6 +69,47 @@ internal static class Program
         var mixedLineEndings = DocumentStatisticsCalculator.Calculate("abc\r\n你好 \t!\rb\n");
         Assert(mixedLineEndings.LineCount == 4, "CRLF, CR, and LF should each count as one logical line break.");
         Assert(mixedLineEndings.CharacterCount == 7, "Character count should exclude whitespace and include Chinese characters and punctuation.");
+    }
+
+    private static void RunStorageTests()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"FlashStickNote-StorageTests-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(root);
+            var storage = new NoteStorage(root, "notes", "txt");
+            var note = new Note { Title = "First title", Content = "First content" };
+
+            Assert(storage.Save(note), "Saving a new text note should succeed.");
+            var originalPath = note.StoredFileName ?? throw new InvalidOperationException("The saved note must have a path.");
+            Assert(File.Exists(originalPath), "The first text note file should exist.");
+
+            note.Title = "Renamed title";
+            Assert(storage.Save(note), "Renaming a text note should succeed.");
+            var renamedPath = note.StoredFileName ?? throw new InvalidOperationException("The renamed note must have a path.");
+            Assert(!string.Equals(originalPath, renamedPath, StringComparison.OrdinalIgnoreCase), "Renaming should choose a new text-file path.");
+            Assert(!File.Exists(originalPath), "The original file should be removed after the replacement is safely written.");
+            Assert(File.ReadAllText(renamedPath) == "First content", "The renamed note must retain its content.");
+
+            Directory.CreateDirectory(Path.Combine(storage.Dir, "Blocked.txt"));
+            note.Title = "Blocked";
+            Assert(!storage.Save(note), "Saving to a path occupied by a directory should fail.");
+            Assert(string.Equals(note.StoredFileName, renamedPath, StringComparison.OrdinalIgnoreCase), "A failed save must retain the original stored path.");
+            Assert(File.Exists(renamedPath), "A failed save must retain the original file.");
+            Assert(!Directory.EnumerateFiles(storage.Dir, "*.tmp").Any(), "A failed save must clean up its temporary file.");
+
+            Assert(storage.Delete(note), "Deleting a stored note should move it to the recycle directory.");
+            Assert(note.StoredFileName == null, "A successfully recycled note should clear its stored path.");
+            Assert(!File.Exists(renamedPath), "The active note file should be removed after recycling.");
+            Assert(Directory.EnumerateFiles(storage.RecycleDir, "Renamed title.txt").Any(), "The recycled note should exist in the recycle directory.");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
     }
 
     private static void RunWindowInteractionTests()

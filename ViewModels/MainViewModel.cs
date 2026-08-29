@@ -451,23 +451,28 @@ public class MainViewModel : INotifyPropertyChanged
         SelectedNote = note;
     }
 
-    public void DeleteSelected()
+    public bool DeleteSelected()
     {
         if (SelectedNote == null)
         {
-            return;
+            return false;
         }
 
         var note = SelectedNote;
         var index = Notes.IndexOf(note);
+        if (!_storage.Delete(note))
+        {
+            return false;
+        }
+
         SelectedNote = null;
         Notes.Remove(note);
-        _storage.Delete(note);
-
         if (Notes.Count > 0)
         {
             SelectedNote = Notes[Math.Min(Math.Max(index, 0), Notes.Count - 1)];
         }
+
+        return true;
     }
 
     private void OnNotePropertyChanged(object? sender, PropertyChangedEventArgs e)
