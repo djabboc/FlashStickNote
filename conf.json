@@ -21,9 +21,9 @@
   "contentFontFamily": "Lucida Fax",
   "contentColor": "",
   "linkColor": "",
-  "caretStyle": "line",
-  "caretWidth": 2,
-  "caretColor": "",
+  "caretStyle": "block",
+  "caretWidth": 4,
+  "caretColor": "#800080",
   "icon": "",
   "startWithWindows": true,
   "silentStart": true,
@@ -32,6 +32,6 @@
   "hideTitleBar": true,
   "showSpaces": true,
   "showTabs": true,
-  "showEndOfLine": true,
+  "showEndOfLine": false,
   "showDocumentStatistics": true
 }
