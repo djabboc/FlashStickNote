@@ -31,4 +31,4 @@ dotnet run --project tests\FlashStickNote.Tests.csproj -c Release --no-restore
 
 ## 发布前
 
-执行 [doc/release.md](doc/release.md) 的 GitHub 提交前检查，确认 Release/Debug 测试和发布包检查均通过，再配置 remote 并推送分支。
+执行 [doc/release.md](doc/release.md) 的提交前检查；GitHub 分支推送、tag 和 Release 页面操作见 [doc/github-release.md](doc/github-release.md)。

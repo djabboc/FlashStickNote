@@ -12,6 +12,7 @@ Windows 便携闪念笔记软件，WPF (.NET 9) 开发。所有数据（配置�
 | [config.md](config.md) | conf.json / shortcut.json / 主题文件完整参考 |
 | [development.md](development.md) | 架构、关键实现、踩坑记录 |
 | [release.md](release.md) | 标准发布流程（publish.ps1） |
+| [github-release.md](github-release.md) | GitHub 分支推送、tag 与 Release 页面流程 |
 | [changelog.md](changelog.md) | 开发历史（按时间线） |
 | [debugging.md](debugging.md) | 当前调试、测试、日志、构建与发布验证方案 |
 | [tech-stack.md](tech-stack.md) | 当前技术栈、架构、存储、并发与 Windows 集成 |
