@@ -79,8 +79,9 @@ dotnet build FlashStickNote.csproj -c Debug --no-restore
 这是开发工具运行环境的记录，不是产品的已知缺陷，也不影响最终 Git 提交或 Release 产物。
 
 
-项目不使用 xUnit/NUnit。tests/FlashStickNote.Tests.csproj 是 STA/WPF 控制台程序，通过 ProjectReference 引用主项目；主项目排除 tests/**/*.cs，因此测试不进入应用程序集。
 ## 自动化回归 harness
+
+项目不使用 xUnit/NUnit。tests/FlashStickNote.Tests.csproj 是 STA/WPF 控制台程序，通过 ProjectReference 引用主项目；主项目排除 tests/**/*.cs，因此测试不进入应用程序集。
 
 
 | 范围 | 当前覆盖 |
