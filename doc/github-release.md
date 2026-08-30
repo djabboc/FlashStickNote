@@ -2,6 +2,18 @@
 
 本项目当前开发分支是 `avalonedit-editor`。发布遵循“分支、tag、Release 资产”三层：分支保存源码，tag 固定发布提交，GitHub Release 页面附带可下载 zip。
 
+## Git tag 和 GitHub Release 的关系
+
+Git tag 是 Git 仓库内的名字，用来永久指向一个确定的提交；它随 `git push` 上传到 GitHub 后，仍然只是一个“源码版本坐标”。GitHub Release 是 GitHub 网站上的发布记录，必须选择一个 tag 作为版本依据，并可附加标题、变更说明和 zip 等二进制资产。
+
+| 对象 | 保存的位置 | 作用 | 是否自动产生另一个对象 |
+| --- | --- | --- | --- |
+| Git tag，例如 `v1.0.1` | Git 提交历史 | 固定可复现的源码提交 | 推送 tag 不会自动创建 GitHub Release |
+| GitHub Release | GitHub 网站 | 提供用户可下载页面、说明与附件 | 创建 Release 不会生成或移动 Git tag |
+| 发布 zip | Release 附件 | 用户安装包 | 不会进入 Git 提交历史 |
+
+一次正式发版通常是一对一关系：一个版本 tag 对应一个 GitHub Release。先完成代码、测试和打包，再提交发布版本、创建 tag，最后让 Release 选择该 tag 并上传**由同一提交构建**的 zip。tag 一旦已公开使用，不应移动或复用；发现问题时提高版本号，创建新的提交、新 tag 和新 Release。
+
 ## 完成一次发布的五步
 
 1. **准备发布提交**：在 `avalonedit-editor` 完成代码、文档、Release/Debug 构建和两轮测试；执行 `./publish.ps1` 生成 `release/FlashStickNote-v{版本}-win-x64.zip`。
@@ -66,17 +78,13 @@ GitHub 网页操作：进入仓库首页 → **Releases** → **Draft a new rele
 
 当前工作树已经将 `conf.json`、`shortcut.json`、`notes/` 和 `log.txt` 设为本机忽略，发布 zip 只使用 `release-templates/` 的干净默认配置。
 
-但早期 Git 提交曾跟踪根目录 `conf.json`，其中可能包含本机路径。首次公开推送前必须决定：
-
-- 接受保留历史：确认历史中的本机路径可以公开，然后按上述步骤推送。
-- 清理历史：先单独授权重写 Git 历史并人工复核结果，再添加 remote 和推送。历史重写会改变所有提交 ID，不能与已有协作者的分支混用。
-
-未完成这项决定前，不应向公共 GitHub 仓库推送。
+早期 Git 提交曾跟踪根目录 `conf.json`，其中包含本机用户名与笔记目录路径。仓库所有者已接受公开这些历史路径；未发现凭据或笔记正文。未来若要清理历史，必须单独授权重写 Git 历史并人工复核结果。
 
 ## 当前状态（2026-08-30）
 
-- 分支：`avalonedit-editor`
-- 本地 tag：`v1.0.0`
-- 已验证发布包：`release/FlashStickNote-v1.0.0-win-x64.zip`
-- GitHub remote：尚未配置
+- GitHub remote：`git@github.com:djabboc/FlashStickNote.git`
+- 已推送分支：`avalonedit-editor`，当前提交 `69754cc`
+- 已推送 tag：`v1.0.0`，指向历史提交 `4132193`
+- GitHub Release 页面：尚未创建
+- 已验证 zip：`release/FlashStickNote-v1.0.0-win-x64.zip`，不能附加到旧的 `v1.0.0` tag；下一次正式发布应先将项目版本提高到 `1.0.1`，在当前代码提交上重新打包，再创建 `v1.0.1` tag 和 Release。
 - 已验证命令：restore、Release/Debug build、Release/Debug WPF harness、`publish.ps1`

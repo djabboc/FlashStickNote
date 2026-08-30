@@ -34,10 +34,15 @@ git status
 # 2. 发布
 .\publish.ps1 -Version 1.0.1
 
-# 3. 提交 + 打 tag（在 avalonedit-editor 分支独立发版，不合并 master）
-git commit -m "release v1.0.1"
-git tag v1.0.1
+# 3. 提交、推送分支，再创建并推送带说明的 tag
+git add FlashStickNote.csproj doc README.md release-templates
+git commit -m "release: v1.0.1"
+git push origin avalonedit-editor
+git tag -a v1.0.1 -m "FlashStickNote v1.0.1"
+git push origin v1.0.1
 ```
+
+tag 固定发布所用的源码提交；GitHub Release 是网站上的下载页面和附件，两者不是同一个对象。创建 GitHub Release 时选择刚推送的 tag，并上传由该 tag 指向提交构建出的 zip。详见 [github-release.md](github-release.md)。
 
 ## 产物约定
 
