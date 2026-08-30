@@ -1,38 +1,19 @@
 # 发布流程（标准）
 
-## 一键发布
-
-```powershell
-.\publish.ps1                         # 版本自动读取 FlashStickNote.csproj；默认 win-x64
-.\publish.ps1 -Runtime win-arm64      # 发布 ARM64 包
-.\publish.ps1 -Version 1.0.1          # 仅在临时覆盖项目版本时使用
-```
-
-发布前只需修改 `FlashStickNote.csproj` 的 `<Version>`，再执行 `publish.ps1`。脚本会把该版本写入程序集和 zip 文件名，避免手工参数与项目版本不一致。
-
-脚本自动完成（幂等，可重复执行）：
-
-1. `dotnet publish -c Release -r {RID} --self-contained false -p:Version={版本} -p:DebugType=None -p:DebugSymbols=false`
-   - **Release 构建**（发布必须用 Release；Debug 未优化且带调试信息）
-   - **框架依赖**：产物约 0.3MB，目标机需装 .NET 9 桌面运行时（zip 内 README 已写明）
-   - 无 PDB
-2. 组装 `release\FlashStickNote-v{版本}-{RID}\`：发布产物 + `release-templates\`（默认 conf.json / shortcut.json / README.txt）+ `theme\` 文件夹
-3. 打包 `release\FlashStickNote-v{版本}-{RID}.zip`
-
 ## 完整发布步骤（Git tag + GitHub Release）
 
 正式发布必须使用未被占用的版本号，并保证 zip、Git tag 与 GitHub Release 都对应同一个源码提交。以下以 `1.0.1` 为例。
 
-### 1. 选择新版本
+### 1. 选择并写入新版本（先做这一步）
 
-先检查本地和 GitHub 是否已经使用该 tag：
+在修改 `FlashStickNote.csproj` 前，先检查本地和 GitHub 是否已经使用该 tag：
 
 ```powershell
 git tag --list v1.0.1
 git ls-remote --tags origin v1.0.1
 ```
 
-两条命令都没有输出才可使用该版本。若任一命令有输出，增加版本号。将 `FlashStickNote.csproj` 的 `<Version>` 改为 `1.0.1`；不要使用 `-Version` 参数替代这一修改。
+两条命令都没有输出才可使用该版本。若任一命令有输出，增加版本号。然后将 `FlashStickNote.csproj` 的 `<Version>` 改为 `1.0.1`；**在完成此修改前，不要运行 `publish.ps1`，也不要用 `-Version` 参数绕过它。**
 
 ### 2. 验证发布版本
 
@@ -72,30 +53,15 @@ git push origin v1.0.1
 3. 在 **Release title** 填写 `FlashStickNote v1.0.1`，在说明框填写该版本的用户可见改动。
 4. 在 **Attach binaries** 上传 `release\FlashStickNote-v1.0.1-win-x64.zip`，等待文件名和大小显示完成。
 5. 正式版本取消 **Set as a pre-release**，保留 **Set as the latest release**，确认后点击 **Publish release**。
-## GitHub 提交前检查
+### 6. 发布后验证
 
-1. `git status --short` 只能包含本次准备提交的源码、文档和发布模板；`conf.json`、`shortcut.json`、`notes/`、`log.txt` 必须保持本机忽略。
-2. 运行 `dotnet build FlashStickNote.csproj -c Release --no-restore`、`dotnet build FlashStickNote.csproj -c Debug --no-restore`，再分别执行 Release/Debug 的测试 harness。
-3. 运行 `./publish.ps1`，检查生成 zip 内只包含发布模板、theme 和发布产物，不包含个人笔记、日志或绝对路径配置。
-4. 运行 `git diff --check`、`git fsck --no-reflogs --unreachable`；确认目标 remote 后再执行 `git push <remote> avalonedit-editor`。若尚未配置 remote，发布前需由仓库所有者添加。
-## 发版清单（每次发版）
+1. 用未登录 GitHub 的浏览器窗口打开 Release 页面，确认 tag、标题和 zip 均可见。
+2. 下载 zip 并解压，确认包含程序、`theme/`、干净默认配置和 README，不含个人笔记或本机配置。
+3. Release 页面自动提供的 Source code zip/tar.gz 只是源码；用户应下载上传的 `FlashStickNote-v1.0.1-win-x64.zip`。
 
-```powershell
-# 1. 确认改动已提交
-git status
+至此本次发布完成。下一次发布从步骤 1 重新开始，并使用新的版本号。
 
-# 2. 发布
-.\publish.ps1 -Version 1.0.1
 
-# 3. 提交、推送分支，再创建并推送带说明的 tag
-git add FlashStickNote.csproj doc README.md release-templates
-git commit -m "release: v1.0.1"
-git push origin avalonedit-editor
-git tag -a v1.0.1 -m "FlashStickNote v1.0.1"
-git push origin v1.0.1
-```
-
-tag 固定发布所用的源码提交；GitHub Release 是网站上的下载页面和附件，两者不是同一个对象。创建 GitHub Release 时选择刚推送的 tag，并上传由该 tag 指向提交构建出的 zip。详见 [github-release.md](github-release.md)。
 
 ## 产物约定
 
