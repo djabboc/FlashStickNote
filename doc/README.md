@@ -1,5 +1,7 @@
 # FlashStickNote 开发文档
 
+GitHub 首页见仓库根目录 [README.md](../README.md)。
+
 Windows 便携闪念笔记软件，WPF (.NET 9) 开发。所有数据（配置、主题、笔记）保存在程序目录，可整体放入 U 盘使用。
 
 ## 文档目录

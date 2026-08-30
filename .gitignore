@@ -5,3 +5,9 @@ obj/
 行号验证截图/
 *.png
 release/
+
+# Local runtime data and developer preferences (release defaults live in release-templates/)
+conf.json
+shortcut.json
+log.txt
+notes/

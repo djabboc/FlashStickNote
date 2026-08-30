@@ -176,3 +176,9 @@ publish.ps1 读取 csproj Version，执行 framework-dependent 的 win-x64 Relea
 发布后检查 zip 的干净配置、主题、README；解压到新目录测试启动、托盘、笔记保存、全局唤窗和默认配置。目标机需要 .NET 9 Desktop Runtime。
 
 已知边界：txt/md 使用 File.ReadAllText，未自动识别 ANSI/GBK，中文文本应保存 UTF-8；FileSystemWatcher 在云盘/网络盘/批量操作下可能合并或丢失事件，需结合文件与日志确认；harness 不替代不同 DPI、多屏、注册表权限、云盘和真实用户目录的发布包手工测试。
+
+## GitHub 准备（2026-08-30）
+
+- 生产代码可达性审查未发现无调用的辅助类；保留所有仍被运行时或 harness 使用的实现。
+- 根目录 `conf.json`、`shortcut.json`、`notes/`、`log.txt` 是本机运行数据，不再纳入 Git；可分发默认值仅维护在 `release-templates/`。
+- `.gitattributes` 固定源码、XAML、JSON、Markdown 和 PowerShell 的 CRLF，避免跨平台提交产生无意义行尾差异。

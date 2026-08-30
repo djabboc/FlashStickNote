@@ -19,6 +19,12 @@
 2. 组装 `release\FlashStickNote-v{版本}-{RID}\`：发布产物 + `release-templates\`（默认 conf.json / shortcut.json / README.txt）+ `theme\` 文件夹
 3. 打包 `release\FlashStickNote-v{版本}-{RID}.zip`
 
+## GitHub 提交前检查
+
+1. `git status --short` 只能包含本次准备提交的源码、文档和发布模板；`conf.json`、`shortcut.json`、`notes/`、`log.txt` 必须保持本机忽略。
+2. 运行 `dotnet build FlashStickNote.csproj -c Release --no-restore`、`dotnet build FlashStickNote.csproj -c Debug --no-restore`，再分别执行 Release/Debug 的测试 harness。
+3. 运行 `./publish.ps1`，检查生成 zip 内只包含发布模板、theme 和发布产物，不包含个人笔记、日志或绝对路径配置。
+4. 运行 `git diff --check`、`git fsck --no-reflogs --unreachable`；确认目标 remote 后再执行 `git push <remote> avalonedit-editor`。若尚未配置 remote，发布前需由仓库所有者添加。
 ## 发版清单（每次发版）
 
 ```powershell
