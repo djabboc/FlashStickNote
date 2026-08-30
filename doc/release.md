@@ -32,6 +32,10 @@ dotnet run --project tests\FlashStickNote.Tests.csproj -c Debug --no-restore
 ```
 
 确认输出为 `release\FlashStickNote-v1.0.1-win-x64.zip`。`release/` 已被忽略，zip 不进入 Git 提交。
+`publish.ps1` 会从当前工作区重新执行 `dotnet publish -c Release`，因此会重新编译程序，再组装配置、主题和 README 并打包 zip；同版本重复运行会覆盖同名 zip。
+
+脚本不会执行 Git 提交、创建或推送 tag、推送分支，也不会创建 GitHub Release 页面。这些操作必须继续按第 4 至第 6 步完成。
+
 
 ### 4. 提交发布版本并推送 tag
 
