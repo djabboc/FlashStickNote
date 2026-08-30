@@ -61,16 +61,25 @@ git push origin v1.0.1
 
 `release/` 已忽略，zip 是 Release 页面资产，不能作为源码提交。
 
-## GitHub Release 页面
+## 通过 GitHub 网页上传 Release
 
-GitHub 网页操作：进入仓库首页 → **Releases** → **Draft a new release**。
+以下示例使用下一次正式版本 `v1.0.1`。开始前确认 `v1.0.1` 已推送，且 zip 是由该 tag 指向的提交构建；不要把当前 `FlashStickNote-v1.0.0-win-x64.zip` 上传到旧 tag `v1.0.0`。
 
-- **Choose a tag**：选择已推送的 `v1.0.1`，不要在网页临时创建与本地不同的 tag。
-- **Target**：确认是 `avalonedit-editor` 的发布提交。
-- **Release title**：`FlashStickNote v1.0.1`。
-- **Describe this release**：从 `doc/changelog.md` 复制该版本的用户可见变更、兼容性说明和已知限制。
-- **Attach binaries**：上传 `release/FlashStickNote-v1.0.1-win-x64.zip`。
-- 发布前取消勾选 **Set as a pre-release**；只有测试版本才勾选。
+1. 打开仓库首页 `https://github.com/djabboc/FlashStickNote`，点击右侧 **Releases**，再点击 **Draft a new release**。
+2. 在 **Choose a tag** 中选择已有的 `v1.0.1`；不要输入新 tag，也不要让网页创建临时 tag。
+3. 确认页面显示的 **Target** 是预期的 `avalonedit-editor` 发布提交；它必须和本地打包时的提交一致。
+4. 在 **Release title** 填写 `FlashStickNote v1.0.1`。
+5. 在说明框填写用户可见改动、兼容性说明和已知限制；内容可从 `doc/changelog.md` 对应版本整理。
+6. 将 `release/FlashStickNote-v1.0.1-win-x64.zip` 拖入 **Attach binaries** 区域，或点击该区域选择文件；等待文件名和大小显示完成。
+7. 正式版本不要勾选 **Set as a pre-release**；只有测试版本才勾选。通常保留 **Set as the latest release**，只有有意让旧版继续显示为最新版时才取消。
+8. 再次核对 tag、标题和 zip 文件名，点击 **Publish release**。
+9. 发布完成后，复制 Release 页面链接，用无登录浏览器窗口打开并下载 zip，确认下载项可见且压缩包能正常打开。
+
+### 发布后核对
+
+1. Release 页面显示的 tag 应为 `v1.0.1`，不能是相近但不同的版本号。
+2. 附件应只有对应版本的 `FlashStickNote-v1.0.1-win-x64.zip`；GitHub 自动提供的 Source code zip/tar.gz 是源码，不是安装包。
+3. 若上传了错误 zip，不要移动既有 tag；删除或编辑草稿/Release 附件，重新构建正确包后再上传。若已正式公开错误版本，提升版本号并创建新 tag 与新 Release。
 
 本机没有 GitHub CLI（`gh`）。因此使用网页创建 Release 页面最直接，也不需要授予自动化工具 GitHub 账号权限。
 
@@ -83,7 +92,7 @@ GitHub 网页操作：进入仓库首页 → **Releases** → **Draft a new rele
 ## 当前状态（2026-08-30）
 
 - GitHub remote：`git@github.com:djabboc/FlashStickNote.git`
-- 已推送分支：`avalonedit-editor`，当前提交 `69754cc`
+- 已推送分支：`avalonedit-editor`（以 GitHub 仓库页面显示的最新提交为准）
 - 已推送 tag：`v1.0.0`，指向历史提交 `4132193`
 - GitHub Release 页面：尚未创建
 - 已验证 zip：`release/FlashStickNote-v1.0.0-win-x64.zip`，不能附加到旧的 `v1.0.0` tag；下一次正式发布应先将项目版本提高到 `1.0.1`，在当前代码提交上重新打包，再创建 `v1.0.1` tag 和 Release。
