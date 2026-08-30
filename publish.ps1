@@ -52,4 +52,17 @@ $sizeMb = [math]::Round((Get-Item $zipPath).Length / 1MB, 2)
 $fileCount = (Get-ChildItem $stageDir -Recurse -File | Measure-Object).Count
 Write-Host ""
 Write-Host "发布完成: $zipPath ($sizeMb MB, $fileCount 个文件)" -ForegroundColor Green
-Write-Host "后续步骤: git commit -m 'release v$Version'; git tag v$Version" -ForegroundColor Yellow
+$tagName = "v$Version"
+$existingTag = @(git -C $root tag --list $tagName)
+if ($existingTag.Count -gt 0) {
+    Write-Host "注意: Git tag $tagName 已存在。不要将本次 zip 发布为该旧 tag。" -ForegroundColor Red
+    Write-Host "请将 FlashStickNote.csproj 的 <Version> 提高到未使用版本，再重新运行 .\publish.ps1。" -ForegroundColor Yellow
+}
+else {
+    Write-Host "后续步骤（详见 doc\release.md）：" -ForegroundColor Yellow
+    Write-Host "1. git add FlashStickNote.csproj doc README.md release-templates"
+    Write-Host "2. git commit -m 'release: $tagName'"
+    Write-Host "3. git push origin avalonedit-editor"
+    Write-Host "4. git tag -a $tagName -m 'FlashStickNote $tagName'; git push origin $tagName"
+    Write-Host "5. GitHub Releases -> Draft a new release -> 选择 $tagName -> 上传 $zipPath"
+}
