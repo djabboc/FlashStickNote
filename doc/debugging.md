@@ -66,7 +66,6 @@ dotnet build FlashStickNote.csproj -c Debug --no-restore
 
 强制结束前应等待 600ms 自动保存完成；优先使用托盘菜单“退出”。只能结束已确认的 FlashStickNote 进程，不要通过删除 bin/ 或 obj/ 绕过锁。
 
-## 自动化回归 harness
 ## Codex Windows 补丁权限故障
 
 如果 Codex 的内置补丁工具报出 `windows sandbox failed: helper_unknown_error: apply deny-read ACLs`，这是 Codex Windows 权限隔离的环境故障，不表示 FlashStickNote 项目文件损坏、只读或需要修改 ACL。
@@ -81,6 +80,8 @@ dotnet build FlashStickNote.csproj -c Debug --no-restore
 
 
 项目不使用 xUnit/NUnit。tests/FlashStickNote.Tests.csproj 是 STA/WPF 控制台程序，通过 ProjectReference 引用主项目；主项目排除 tests/**/*.cs，因此测试不进入应用程序集。
+## 自动化回归 harness
+
 
 | 范围 | 当前覆盖 |
 |---|---|
