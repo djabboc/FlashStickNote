@@ -22,20 +22,42 @@ Git tag 是 Git 仓库内的名字，用来永久指向一个确定的提交；�
 4. **创建并推送 tag**：tag 必须指向已验证的发布提交，格式为 `v{版本}`。
 5. **创建 GitHub Release 页面**：在 GitHub 网页选择该 tag，填写标题和变更说明，上传生成的 zip。
 
-## 第一次连接 GitHub
+## 第一次连接 GitHub（专用 SSH 密钥）
 
-将下列占位地址替换为实际仓库地址。远程仓库应为空，或至少不包含与本地无关的初始提交。
+本机为 GitHub 推送创建了专用密钥 `C:\Users\huang\.ssh\id_ed25519_flashsticknote`。Public 仓库允许任何人读取和下载，但推送仍必须使用拥有写权限的 GitHub 身份。
+
+### 1. 验证 GitHub 身份
+
+在 PowerShell 执行：
 
 ```powershell
-# 在 GitHub 创建仓库后执行一次
-git remote add origin https://github.com/<owner>/<repository>.git
+ssh -i C:\Users\huang\.ssh\id_ed25519_flashsticknote -o IdentitiesOnly=yes -T git@github.com
+```
+
+成功时会显示 `Hi djabboc! You've successfully authenticated, but GitHub does not provide shell access.`。`git@github.com` 中不要写反斜杠；`git\@github.com` 是错误的 SSH 用户名。直接运行 `ssh -T git@github.com` 不会自动使用本项目的 Git 专用密钥，可能显示 `Permission denied (publickey)`。
+
+### 2. 为仓库配置 remote 和专用密钥
+
+```powershell
+# FlashStickNote 当前仓库，只需执行一次
+git remote add origin git@github.com:djabboc/FlashStickNote.git
+git config core.sshCommand "ssh -i C:/Users/huang/.ssh/id_ed25519_flashsticknote -o IdentitiesOnly=yes"
 git remote -v
 
-# 首次推送当前开发分支并建立上游关系
 git push -u origin avalonedit-editor
 ```
 
-若远程名称不是 `origin`，将命令中的 `origin` 换成实际名称。不要使用 `--force`；首次推送失败时先确认仓库地址、权限和远程初始提交。
+`core.sshCommand` 只写入当前仓库的 `.git/config`，因此之后正常执行 `git push` 会自动使用这把密钥，不影响其他仓库。
+
+不要直接照抄 GitHub 空仓库页面的 `git branch -M main`：它会把当前分支改名为 `main`。本项目应保留 `avalonedit-editor` 并推送该分支。其他项目也遵循同一原则，例如 EnputMethod 应替换 remote 地址，并推送自己的当前分支：
+
+```powershell
+git remote add origin git@github.com:djabboc/EnputMethod.git
+git config core.sshCommand "ssh -i C:/Users/huang/.ssh/id_ed25519_flashsticknote -o IdentitiesOnly=yes"
+git push -u origin <当前分支名>
+```
+
+不要使用 `--force`；首次推送失败时先确认仓库地址、写入权限和当前分支名。
 
 ## 发布一个新版本
 
