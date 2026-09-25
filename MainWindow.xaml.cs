@@ -253,18 +253,57 @@ public partial class MainWindow : Window
 
     private void ApplyWindowBounds(AppConfig conf)
     {
-        Width = NormalizeWindowDimension(conf.WindowWidth, MinWidth);
-        Height = NormalizeWindowDimension(conf.WindowHeight, MinHeight);
+        var workArea = SystemParameters.WorkArea;
+        var legacyWidth = NormalizeWindowDimension(conf.WindowWidth, MinWidth);
+        var legacyHeight = NormalizeWindowDimension(conf.WindowHeight, MinHeight);
+        if (conf.RememberWindowBounds &&
+            conf.WindowLeftRatio is { } leftRatio && conf.WindowTopRatio is { } topRatio &&
+            conf.WindowWidthRatio is { } widthRatio && conf.WindowHeightRatio is { } heightRatio &&
+            WindowBoundsRatioMapper.TryMap(
+                new WindowBoundsRatio(leftRatio, topRatio, widthRatio, heightRatio),
+                workArea,
+                MinWidth,
+                MinHeight,
+                out var mappedBounds))
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = mappedBounds.Left;
+            Top = mappedBounds.Top;
+            Width = mappedBounds.Width;
+            Height = mappedBounds.Height;
+            return;
+        }
 
         if (conf.WindowLeft is { } left && conf.WindowTop is { } top &&
             double.IsFinite(left) && double.IsFinite(top))
         {
+            if (conf.RememberWindowBounds && WindowBoundsRatioMapper.TryNormalize(
+                new Rect(left, top, legacyWidth, legacyHeight),
+                workArea,
+                MinWidth,
+                MinHeight,
+                out var legacyRatio) &&
+                WindowBoundsRatioMapper.TryMap(legacyRatio, workArea, MinWidth, MinHeight, out var migratedBounds))
+            {
+                Width = migratedBounds.Width;
+                Height = migratedBounds.Height;
+                Left = migratedBounds.Left;
+                Top = migratedBounds.Top;
+            }
+            else
+            {
+                Width = legacyWidth;
+                Height = legacyHeight;
+                Left = left;
+                Top = top;
+            }
+
             WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = left;
-            Top = top;
         }
         else
         {
+            Width = legacyWidth;
+            Height = legacyHeight;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
     }
@@ -315,12 +354,35 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (WindowBoundsRatioMapper.TryNormalize(bounds, GetWindowWorkArea(), MinWidth, MinHeight, out var ratio))
+        {
+            _appConfig.WindowLeftRatio = ratio.Left;
+            _appConfig.WindowTopRatio = ratio.Top;
+            _appConfig.WindowWidthRatio = ratio.Width;
+            _appConfig.WindowHeightRatio = ratio.Height;
+        }
+
         _appConfig.WindowWidth = NormalizeWindowDimension(bounds.Width, MinWidth);
         _appConfig.WindowHeight = NormalizeWindowDimension(bounds.Height, MinHeight);
         _appConfig.WindowLeft = bounds.Left;
         _appConfig.WindowTop = bounds.Top;
         ConfigService.SaveConfig(_appConfig);
         Logger.Log($"已保存窗口位置与大小: {_appConfig.WindowLeft},{_appConfig.WindowTop} {_appConfig.WindowWidth}x{_appConfig.WindowHeight}");
+    }
+
+    private Rect GetWindowWorkArea()
+    {
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle == IntPtr.Zero)
+        {
+            return SystemParameters.WorkArea;
+        }
+
+        var workArea = System.Windows.Forms.Screen.FromHandle(handle).WorkingArea;
+        var topLeft = PointFromScreen(new System.Windows.Point(workArea.Left, workArea.Top));
+        var bottomRight = PointFromScreen(new System.Windows.Point(workArea.Right, workArea.Bottom));
+        var bounds = new Rect(topLeft, bottomRight);
+        return bounds.Width > 0 && bounds.Height > 0 ? bounds : SystemParameters.WorkArea;
     }
 
     private static System.Windows.Media.FontFamily CreateFontFamily(string? primaryFamily, IEnumerable<string>? fallbackFamilies)

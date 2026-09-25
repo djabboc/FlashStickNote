@@ -17,6 +17,7 @@ Windows 便携闪念笔记软件，WPF (.NET 9) 开发。所有数据（配置�
 | [debugging.md](debugging.md) | 当前调试、测试、日志、构建与发布验证方案 |
 | [tech-stack.md](tech-stack.md) | 当前技术栈、架构、存储、并发与 Windows 集成 |
 | [task-book-2026-08-29-navigation-pins.md](task-book-2026-08-29-navigation-pins.md) | 导航与置顶任务书、验收与验证记录 |
+| [task-book-2026-09-25-display-and-notes-marker.md](task-book-2026-09-25-display-and-notes-marker.md) | 显示器窗口比例记忆与笔记导入标记 |
 
 ## 快速开始（开发）
 

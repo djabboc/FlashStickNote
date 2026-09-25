@@ -20,6 +20,7 @@ internal static class Program
         {
             RunLogicTests();
             RunStorageTests();
+            RunImportMarkerTests();
             RunWindowInteractionTests();
             Console.WriteLine("All FlashStickNote tests passed.");
             return 0;
@@ -93,6 +94,24 @@ internal static class Program
         var mixedLineEndings = DocumentStatisticsCalculator.Calculate("abc\r\n你好 \t!\rb\n");
         Assert(mixedLineEndings.LineCount == 4, "CRLF, CR, and LF should each count as one logical line break.");
         Assert(mixedLineEndings.CharacterCount == 7, "Character count should exclude whitespace and include Chinese characters and punctuation.");
+
+        var sourceWorkArea = new Rect(0, 40, 1920, 1040);
+        var sourceBounds = new Rect(960, 560, 960, 520);
+        Assert(WindowBoundsRatioMapper.TryNormalize(sourceBounds, sourceWorkArea, 600, 400, out var ratio),
+            "A valid window rectangle should normalize against its work area.");
+        Assert(Math.Abs(ratio.Left - 0.5) < 0.0001 && Math.Abs(ratio.Top - 0.5) < 0.0001 &&
+               Math.Abs(ratio.Width - 0.5) < 0.0001 && Math.Abs(ratio.Height - 0.5) < 0.0001,
+            "Window placement and size should be stored as work-area ratios.");
+        var targetWorkArea = new Rect(0, 80, 3840, 2080);
+        Assert(WindowBoundsRatioMapper.TryMap(ratio, targetWorkArea, 600, 400, out var targetBounds),
+            "A valid window ratio should map to a different work area.");
+        Assert(Math.Abs(targetBounds.Left - 1920) < 0.1 && Math.Abs(targetBounds.Top - 1120) < 0.1 &&
+               Math.Abs(targetBounds.Width - 1920) < 0.1 && Math.Abs(targetBounds.Height - 1040) < 0.1,
+            "Window position and dimensions should scale with a different work area.");
+        Assert(WindowBoundsRatioMapper.TryMap(ratio, new Rect(0, 0, 800, 600), 600, 400, out var smallBounds),
+            "A valid window ratio should map to a smaller work area.");
+        Assert(smallBounds.Left >= 0 && smallBounds.Top >= 0 && smallBounds.Right <= 800.1 && smallBounds.Bottom <= 600.1,
+            "Mapped window bounds should remain fully visible in the target work area.");
     }
 
     private static void RunStorageTests()
@@ -135,6 +154,47 @@ internal static class Program
             Assert(note.StoredFileName == null, "A successfully recycled note should clear its stored path.");
             Assert(!File.Exists(renamedPath), "The active note file should be removed after recycling.");
             Assert(Directory.EnumerateFiles(storage.RecycleDir, "Renamed title.txt").Any(), "The recycled note should exist in the recycle directory.");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    private static void RunImportMarkerTests()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"FlashStickNote-ImportTests-{Guid.NewGuid():N}");
+        var defaultDir = Path.Combine(root, "notes");
+        var customDir = Path.Combine(root, "custom");
+        try
+        {
+            var defaultStorage = new NoteStorage(root, "notes", "txt");
+            Assert(!File.Exists(Path.Combine(defaultStorage.Dir, ".flashsticknote")),
+                "Using the default notes directory must not create an import marker.");
+
+            Directory.CreateDirectory(defaultDir);
+            Directory.CreateDirectory(customDir);
+            File.WriteAllText(Path.Combine(defaultDir, "Imported.txt"), "legacy note");
+            File.WriteAllText(Path.Combine(defaultDir, "Conflict.txt"), "legacy conflict");
+            File.WriteAllText(Path.Combine(customDir, "Conflict.txt"), "existing target note");
+
+            var firstImport = new NoteStorage(root, "custom", "txt");
+            var markerPath = Path.Combine(customDir, ".flashsticknote");
+            Assert(File.Exists(markerPath), "Importing into a custom notes directory must create the completion marker.");
+            Assert(File.ReadAllText(Path.Combine(customDir, "Imported.txt")) == "legacy note",
+                "The first import should move legacy notes into the custom directory.");
+            Assert(File.ReadAllText(Path.Combine(customDir, "Conflict.txt")) == "existing target note",
+                "Import must not overwrite a same-named file in the target directory.");
+            Assert(File.Exists(Path.Combine(defaultDir, "Conflict.txt")),
+                "A legacy source file blocked by a target collision should remain in the source directory.");
+
+            File.WriteAllText(Path.Combine(defaultDir, "AddedLater.txt"), "later note");
+            _ = new NoteStorage(root, "custom", "txt");
+            Assert(File.Exists(Path.Combine(defaultDir, "AddedLater.txt")),
+                "The marker must prevent importing files added to the old directory on later launches.");
         }
         finally
         {
@@ -402,6 +462,9 @@ internal static class Program
         Assert(persistedConfig.WindowLeft is { } left && persistedConfig.WindowTop is { } top &&
             Math.Abs(left - 180) < 0.1 && Math.Abs(top - 160) < 0.1,
             "Remembered window coordinates should be saved on normal exit.");
+        Assert(persistedConfig.WindowLeftRatio.HasValue && persistedConfig.WindowTopRatio.HasValue &&
+               persistedConfig.WindowWidthRatio.HasValue && persistedConfig.WindowHeightRatio.HasValue,
+            "Remembered window bounds should also save normalized ratios.");
     }
 
     private static void WriteTestConfiguration(bool hideTitleBar, bool rememberWindowBounds = false)

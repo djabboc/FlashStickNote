@@ -28,6 +28,10 @@ public class AppConfig
     public double WindowHeight { get; set; } = 620.0;
     public double? WindowLeft { get; set; }
     public double? WindowTop { get; set; }
+    public double? WindowLeftRatio { get; set; }
+    public double? WindowTopRatio { get; set; }
+    public double? WindowWidthRatio { get; set; }
+    public double? WindowHeightRatio { get; set; }
     public bool RememberWindowBounds { get; set; } = true;
     public string NotesDir { get; set; } = "notes";
     public string NotesFormat { get; set; } = "json";

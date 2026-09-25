@@ -80,7 +80,7 @@ MainWindow 的窗口内 InputBindings 处理 Ctrl+F、Ctrl+B、F2 与 Ctrl+P。V
 | txt | 去扩展名的文件名 | 文件完整文本 | 文件创建/修改时间。 |
 | md | 去扩展名的文件名 | 文件完整文本 | 文件创建/修改时间。 |
 
-notesFormat 仅影响新笔记；已保存笔记按原扩展名继续保存。notesDir 支持相对、绝对、~/、%USERPROFILE%；默认目录导入以 .flashsticknote 标记一次性完成。
+notesFormat 仅影响新笔记；已保存笔记按原扩展名继续保存。notesDir 支持相对、绝对、~/、%USERPROFILE%。仅当使用自定义 notesDir 且程序目录下存在旧 `notes/` 时，程序尝试一次性搬入旧笔记，并在目标目录创建 `.flashsticknote` 标记，防止下次重复导入。该文件不是笔记；目标同名文件不会覆盖，冲突导致留在来源目录的文件也不会因后续启动再次尝试导入。默认使用程序目录的 `notes/` 时不创建标记。
 
 NoteStorage 写入同目录随机 .tmp，再 File.Move 覆盖目标；新文件成功后才删除重命名的旧文件。失败保存保留旧路径和内容。空笔记不落盘，清空已保存笔记删除文件。删除移到 notes/recycle/，同名追加编号；移动失败尝试 copy/delete，仍失败则调用方保留列表项。
 
@@ -99,6 +99,8 @@ txt/md 始终使用文件名为标题、全文为正文，不猜测首行是不�
 | watcher 恢复 | Error 后重建 watcher、枚举目录、协调集合。 |
 | 光标 | DispatcherTimer；有键盘焦点时按间隔切换可见性。 |
 | 窗口矩形 | DispatcherTimer 600ms，合并位置/尺寸/状态变化。 |
+
+窗口矩形在 `rememberWindowBounds=true` 时相对窗口所在显示器工作区保存左、上、宽、高比例；启动时使用同一组比例映射到当前主显示器。旧配置绝对值作为迁移回退并继续写回，供旧版本读取。
 
 FileSystemWatcher 不递归子目录，recycle/ 事件忽略；事件回到 UI 的操作都经 Dispatcher，Dispose 后不再调度。数据安全约束是：失败保存不改 StoredFileName，失败回收不移除列表，外部读取失败不清空现有笔记。
 

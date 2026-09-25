@@ -119,12 +119,11 @@ csproj `ApplicationIcon`（exe 内嵌）+ `EmbeddedResource LogicalName`（运�
 
 ## 测试约定
 
-- 本项目无单元测试框架；采用**临时控制台 harness**（`fsntestN`，ProjectReference 引用主工程）做行为验证：
-  - 存储层（格式迁移、回收站、目录导入、空笔记规则）用纯控制台断言
-  - UI 层（行号测量、链接识别、视觉控件）用 STA + 真实 WPF 控件 + ground truth 对比
-- 当前 `tests/FlashStickNote.Tests.csproj` 已改为引用主工程的 STA/WPF 测试程序；窗口交互回归通过实际 `MainWindow` 的命中测试覆盖普通标题栏和无标题栏两种配置，并覆盖文件按钮开关、列表空白右键，以及切换到另一笔记后空草稿保留。
+- 本项目无 xUnit/NUnit；使用 `tests/FlashStickNote.Tests.csproj` 中引用主工程的 STA/WPF 控制台 harness。纯逻辑、配置序列化和临时目录存储行为使用断言；窗口交互通过真实 `MainWindow`、AvalonEdit、焦点和 Dispatcher 测试。
+- 窗口比例映射通过可指定工作区的纯计算回归覆盖；笔记导入测试验证默认目录不写标记、自定义目录首次导入、冲突不覆盖和完成标记阻止重复导入。
+- 窗口交互回归通过实际 `MainWindow` 的命中测试覆盖普通标题栏和无标题栏两种配置，并覆盖文件按钮、列表空白右键及空草稿保留。
 - 真机验证：临时改 bin conf → 启动 exe → 检查 log.txt / MainWindowTitle / 注册表 → 还原配置
-- 行号测量曾用第二个真实 TextBox 逐行测量前缀文本高度作为 ground truth（300 行 0 误差）
+- 历史行号测量方案曾用第二个真实 TextBox 逐行测量前缀高度；当前行号由 AvalonEdit 内置渲染器负责。
 
 ## 日志
 
@@ -142,7 +141,7 @@ csproj `ApplicationIcon`（exe 内嵌）+ `EmbeddedResource LogicalName`（运�
 ### 字体与窗口配置
 
 - `fontFamily` 是首选字体，`fontFallbackFamilies` 是有序回退数组。`MainWindow` 将首选和回退项合成为 WPF `FontFamily`，并用于标题、正文和列表的单独字体配置；逗号分隔的旧字体配置仍可读取。
-- 窗口矩形由 `windowWidth`、`windowHeight`、`windowLeft`、`windowTop` 控制。仅当 Left/Top 都是有限数值时使用绝对坐标，否则居中启动；尺寸小于 XAML 最小值时钳制。
+- 窗口矩形新配置以 `windowLeftRatio`、`windowTopRatio`、`windowWidthRatio`、`windowHeightRatio` 保存为窗口所在显示器工作区的比例。启动时映射到当前主显示器并钳制到工作区内；旧版绝对矩形在比例缺失时迁移，绝对字段继续写回以兼容旧版本。
 - `rememberWindowBounds=true` 默认开启。`LocationChanged`、`SizeChanged`、`StateChanged` 只重启 600ms 防抖计时器，避免拖动期间频繁写入；计时到期或托盘“退出”时写入。最大化时保存 `RestoreBounds`，关闭流程先停止定时器再立即保存。
 
 ### 当前回归覆盖

@@ -87,9 +87,9 @@ dotnet build FlashStickNote.csproj -c Debug --no-restore
 | 范围 | 当前覆盖 |
 |---|---|
 | 纯逻辑 | 搜索：大小写、全字、正则、非法正则；行剪切范围；旧行尾配置迁移；字体回退；文档统计。 |
-| 存储 | txt 新建/重命名、失败保存保留旧文件、回收站、正文与标题同名的 XXX 以及 XXX+换行+YYY 读回。 |
+| 存储 | txt 新建/重命名、失败保存保留旧文件、回收站、正文与标题同名读回、旧目录导入标记和目标冲突。 |
 | 窗口和交互 | 普通/无标题栏的菜单命中、文件菜单、列表空白右键、笔记右键、空草稿保留、跨笔记 Ctrl+Z。 |
-| 窗口矩形 | 绝对坐标启动、移动/缩放 600ms 写回、退出最终写回。 |
+| 窗口矩形 | 旧版绝对坐标迁移、4K/2K 工作区比例映射、移动/缩放 600ms 写回、退出最终写回。 |
 | 编辑器光标 | caretBlinkInterval 边界与真实闪烁、光标移动后的立即显示、0 常亮；caretOpacity 默认、边界与真实画刷透明度。 |
 
 UI 测试创建真实 Application、MainWindow、AvalonEdit、键盘焦点和 DispatcherTimer，不是无头单元测试。列表项断言会 ScrollIntoView 并泵送 Dispatcher，避免布局队列或虚拟化产生假失败。

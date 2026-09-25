@@ -26,6 +26,10 @@
   "windowHeight": 620.0,                 // 默认窗口高度（绝对值，最小 400）
   "windowLeft": null,                    // 默认左边坐标；与 windowTop 同时填写时生效
   "windowTop": null,                     // 默认上边坐标；null=居中启动
+  "windowLeftRatio": null,               // 记忆位置比例；由程序维护
+  "windowTopRatio": null,
+  "windowWidthRatio": null,              // 记忆尺寸比例；由程序维护
+  "windowHeightRatio": null,
   "rememberWindowBounds": true,          // 默认记住最后的位置和大小
 
   "notesDir": "notes",                   // 笔记目录：相对 exe / 绝对路径 / ~/ / %USERPROFILE%
@@ -71,7 +75,11 @@
 ```
 `fontFamily` 是首选字体；`fontFallbackFamilies` 是有序回退列表。WPF 会优先使用首选字体，并在字体未安装或当前字符没有字形时依次回退。默认顺序为 Lucida Fax、Microsoft JhengHei、Arial、Microsoft YaHei。标题、正文和列表的单独字体配置仍可使用，且会共享该回退列表；`fontFamily` 和这些单独字体字段也兼容逗号分隔的字体名。
 
-`windowLeft` 和 `windowTop` 必须同时为数值才按绝对坐标启动；任一为 `null` 时居中启动。`rememberWindowBounds=true`（默认）时，窗口停止移动、缩放或切换状态约 600ms 后会写回最后一次普通窗口矩形；托盘菜单的“退出”会立即写回。最大化状态保存其还原后的矩形。设为 `false` 可固定使用配置中的默认矩形；无效尺寸会回退至最小窗口大小。
+`windowLeft` 和 `windowTop` 必须同时为数值才按绝对坐标启动；任一为 `null` 时居中启动。`rememberWindowBounds=true`（默认）时，窗口停止移动、缩放或切换状态约 600ms 后会写回最后一次普通窗口矩形；托盘菜单的“退出”会立即写回。保存时，位置和尺寸按窗口所在显示器的工作区换算为比例；启动时，同一组比例映射到当前主显示器工作区。最大化状态保存其还原后的矩形。旧版 `windowLeft`、`windowTop`、`windowWidth`、`windowHeight` 仍作为比例尚未生成时的迁移值，并继续写回供旧版本读取。设为 `false` 可固定使用配置中的绝对值；无效尺寸会回退至最小窗口大小。
+
+比例字段由程序维护。手动编辑绝对 `windowLeft`、`windowTop` 或尺寸时，需先将四个 `window*Ratio` 字段设为 `null`；否则开启位置记忆时，已保存的比例优先。
+
+`notesDir` 默认值 `notes` 指向程序目录下的默认笔记目录。只有当配置改用其他目录、且程序目录下存在旧 `notes/` 时，程序才会尝试一次性搬入旧文件，并在目标目录创建 `.flashsticknote` 完成标记。它不是笔记文件；同名目标文件不会覆盖，标记存在时不会再次尝试。删除标记可能使仍留在旧 `notes/` 的冲突文件在之后启动时再次进入导入流程。直接使用默认 `notes/` 不会创建该标记。
 
 “`pinnedNotes`”通常不需要手工编辑。程序在置顶、取消置顶、重命名和删除时立即写回：JSON 使用笔记自身的 `id:` 作为稳定键；txt/md 使用相对于 `notesDir` 的 `file:` 键，并在文件重命名后更新。旧版保存的绝对路径仍会读取，下一次置顶状态变更会规范化为新格式。
 
