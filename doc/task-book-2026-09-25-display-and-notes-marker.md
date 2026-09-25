@@ -50,4 +50,4 @@
 - D2 保留现有导入行为；存储回归覆盖默认目录不创建标记、首次导入、同名目标不覆盖和后续启动不重复导入。
 - Release 构建通过（0 警告、0 错误），Release harness 通过。
 - Debug 构建在独立 `OutputPath` 下通过（0 警告、0 错误），避免覆盖被运行中 PID 2988 锁定的标准 Debug 输出；Debug harness 连续两次通过。此前一次完整运行的 F2 焦点断言失败，随后的两次重跑通过。
-- `git diff --check` 通过。提交和推送待完成。
+- `git diff --check` 通过。实现提交 `71fa1f5` 已推送到 `origin/avalonedit-editor`。
